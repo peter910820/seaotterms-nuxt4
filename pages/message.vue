@@ -17,38 +17,40 @@ if (import.meta.client) {
 
 <template>
   <v-container class="main-block">
-    <v-card class="message-card floatup-div wow animate__flipInX">
-      <v-card-text class="center-content">
-        <div v-if="msg">
-          <div
-            v-if="!msg.statusCode.toString().startsWith('2') && msg.statusCode !== 998 && msg.statusCode !== 999"
-            class="msg-code"
-          >
-            {{ msg.statusCode }}
+    <MotionReveal>
+      <v-card class="message-card floatup-div">
+        <v-card-text class="center-content">
+          <div v-if="msg">
+            <div
+              v-if="!msg.statusCode.toString().startsWith('2') && msg.statusCode !== 998 && msg.statusCode !== 999"
+              class="msg-code"
+            >
+              {{ msg.statusCode }}
+            </div>
+            <div v-else-if="msg.statusCode === 998" class="msg-code">{{ msg.errCode }}</div>
+            <div :class="msg.statusCode.toString().startsWith('2') ? 'success-hint' : 'msg-hint'">
+              {{ msg.content }}
+            </div>
+            <div class="go-home-button">
+              <v-btn color="primary" variant="elevated" size="large" to="/" class="button-submit">
+                回到首頁
+                <v-icon end>mdi-home</v-icon>
+              </v-btn>
+            </div>
           </div>
-          <div v-else-if="msg.statusCode === 998" class="msg-code">{{ msg.errCode }}</div>
-          <div :class="msg.statusCode.toString().startsWith('2') ? 'success-hint' : 'msg-hint'">
-            {{ msg.content }}
+          <div v-else>
+            <div class="msg-hint">Session遺失，請聯絡管理員</div>
+            <div class="msg-hint">Session lost, please contact the administrator</div>
+            <div class="go-home-button">
+              <v-btn color="primary" variant="elevated" size="large" to="/" class="button-submit">
+                回到首頁
+                <v-icon end>mdi-home</v-icon>
+              </v-btn>
+            </div>
           </div>
-          <div class="go-home-button">
-            <v-btn color="primary" variant="elevated" size="large" to="/" class="button-submit">
-              回到首頁
-              <v-icon end>mdi-home</v-icon>
-            </v-btn>
-          </div>
-        </div>
-        <div v-else>
-          <div class="msg-hint">Session遺失，請聯絡管理員</div>
-          <div class="msg-hint">Session lost, please contact the administrator</div>
-          <div class="go-home-button">
-            <v-btn color="primary" variant="elevated" size="large" to="/" class="button-submit">
-              回到首頁
-              <v-icon end>mdi-home</v-icon>
-            </v-btn>
-          </div>
-        </div>
-      </v-card-text>
-    </v-card>
+        </v-card-text>
+      </v-card>
+    </MotionReveal>
   </v-container>
 </template>
 

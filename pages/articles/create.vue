@@ -107,7 +107,8 @@ const renderedMarkdown = computed(() => renderMarkdown(form.value.content));
 <template>
   <v-container class="main-block">
     <h1 class="page-title mb-6">建立文章</h1>
-    <v-card class="form-card wow animate__flipInX" color="background">
+    <MotionReveal>
+      <v-card class="form-card" color="background">
       <v-card-text class="pa-8">
         <v-form @submit.prevent="handleSubmit">
           <v-text-field
@@ -183,7 +184,8 @@ const renderedMarkdown = computed(() => renderMarkdown(form.value.content));
           </v-btn>
         </v-form>
       </v-card-text>
-    </v-card>
+      </v-card>
+    </MotionReveal>
   </v-container>
 </template>
 

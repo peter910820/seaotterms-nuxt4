@@ -107,7 +107,8 @@ const changeManagementStatus = async (userId: number) => {
 <template>
   <v-container class="main-block">
     <h1 class="page-title mb-6">使用者帳號維護</h1>
-    <v-card class="form-card wow animate__flipInX" color="background">
+    <MotionReveal>
+      <v-card class="form-card" color="background">
       <v-card-text class="pa-8">
         <v-row class="mb-4">
           <v-col cols="12" md="6">
@@ -168,7 +169,8 @@ const changeManagementStatus = async (userId: number) => {
           </v-btn>
         </v-form>
       </v-card-text>
-    </v-card>
+      </v-card>
+    </MotionReveal>
   </v-container>
 
   <!-- Dialog -->
