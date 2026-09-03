@@ -29,7 +29,7 @@ export default defineNuxtConfig({
       },
     },
   },
-  modules: ["@pinia/nuxt"],
+  modules: ["@pinia/nuxt", ["motion-v/nuxt", { directives: true }]],
   plugins: ["@/plugins/nprogress.client.ts"],
   css: [
     "@/assets/scss/global.scss",
