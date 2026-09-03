@@ -51,7 +51,8 @@ const handleSubmit = async () => {
 <template>
   <v-container class="main-block">
     <h1 class="page-title mb-6">建立文章Tag</h1>
-    <v-card class="form-card wow animate__flipInX" color="background">
+    <MotionReveal>
+      <v-card class="form-card" color="background">
       <v-card-text class="pa-8">
         <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-text-field
@@ -80,7 +81,8 @@ const handleSubmit = async () => {
           </v-btn>
         </v-form>
       </v-card-text>
-    </v-card>
+      </v-card>
+    </MotionReveal>
   </v-container>
 </template>
 

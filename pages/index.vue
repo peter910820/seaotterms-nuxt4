@@ -6,13 +6,6 @@ import { errorHandler } from "@/utils/errorHandler";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Typed: any;
 
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    WOW: any;
-  }
-}
-
 const router = useRouter();
 
 const { data, error } = await useFetch<CommonResponse<ArticleQueryResponse[]>, CommonResponse>("articles", {
@@ -53,12 +46,6 @@ onMounted(() => {
     loop: true,
     showCursor: false,
   });
-
-  // Initialize WOW.js for scroll animations
-  if (window.WOW) {
-    const wow = new window.WOW();
-    wow.init();
-  }
 });
 </script>
 
@@ -72,40 +59,40 @@ onMounted(() => {
 
     <h1 class="mb-4">首頁/文章</h1>
 
-    <v-card
+    <MotionReveal
       v-for="article in articles"
       :key="article.id"
-      class="article-card mb-4 wow animate__slideInUp"
-      @click="link('article', article.id.toString())"
     >
-      <v-card-title class="article-title">{{ article.title }}</v-card-title>
+      <v-card class="article-card mb-4" @click="link('article', article.id.toString())">
+        <v-card-title class="article-title">{{ article.title }}</v-card-title>
 
-      <v-card-text>
-        <div class="d-flex align-center mb-2">
-          <v-icon size="small" class="mr-2">mdi-account</v-icon>
-          <span>SeaotterMS</span>
-        </div>
+        <v-card-text>
+          <div class="d-flex align-center mb-2">
+            <v-icon size="small" class="mr-2">mdi-account</v-icon>
+            <span>SeaotterMS</span>
+          </div>
 
-        <div class="d-flex align-center mb-2">
-          <v-icon size="small" class="mr-2">mdi-pencil</v-icon>
-          <span class="mr-4">{{ article.createdAt }}</span>
-          <v-icon size="small" class="mr-2">mdi-update</v-icon>
-          <span>{{ article.updatedAt }}</span>
-        </div>
+          <div class="d-flex align-center mb-2">
+            <v-icon size="small" class="mr-2">mdi-pencil</v-icon>
+            <span class="mr-4">{{ article.createdAt }}</span>
+            <v-icon size="small" class="mr-2">mdi-update</v-icon>
+            <span>{{ article.updatedAt }}</span>
+          </div>
 
-        <div class="d-flex align-end justify-end flex-wrap">
-          <v-chip
-            v-for="tag in article.tags"
-            :key="tag.name"
-            class="ma-1"
-            size="small"
-            @click.stop="tagClick(tag.name, $event)"
-          >
-            {{ tag.name }}
-          </v-chip>
-        </div>
-      </v-card-text>
-    </v-card>
+          <div class="d-flex align-end justify-end flex-wrap">
+            <v-chip
+              v-for="tag in article.tags"
+              :key="tag.name"
+              class="ma-1"
+              size="small"
+              @click.stop="tagClick(tag.name, $event)"
+            >
+              {{ tag.name }}
+            </v-chip>
+          </div>
+        </v-card-text>
+      </v-card>
+    </MotionReveal>
   </div>
 </template>
 

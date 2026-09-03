@@ -1,17 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, nextTick } from "vue";
+import { computed, ref } from "vue";
 
 import FilterBlock from "@/components/FilterBlock.vue";
 import { userInfoHandler } from "@/utils/userInfoHandler";
 import { useSystemTodoStore } from "@/stores/useTodoStore";
 import type { CommonResponse, SystemTodoQueryResponse } from "@/types/response";
 
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    WOW: any;
-  }
-}
 const router = useRouter();
 const userStore = useUserStore();
 const systemTodoStore = useSystemTodoStore();
@@ -39,17 +33,6 @@ if (import.meta.client && error.value) {
     router.push("/message");
   }
 }
-
-onMounted(() => {
-  systemTodoStore.$subscribe(() => {
-    nextTick(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const wow = new (window as any).WOW();
-      wow.sync();
-      window.dispatchEvent(new Event("scroll"));
-    });
-  });
-});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const openModal = async (id: number) => {
@@ -156,17 +139,19 @@ const deleteTodo = async (id: number) => {
 
     <FilterBlock />
 
-    <v-card
+    <MotionReveal
       v-for="systemTodo in systemTodos"
       :key="systemTodo.id"
-      class="todo-card mb-3 floatup-div wow animate__slideInUp"
-      :class="{
-        'urgency-high': systemTodo.urgency === 1,
-        'urgency-urgent': systemTodo.urgency === 2,
-      }"
     >
-      <v-card-text class="pa-3">
-        <v-row no-gutters align="center" class="todo-row">
+      <v-card
+        class="todo-card mb-3 floatup-div"
+        :class="{
+          'urgency-high': systemTodo.urgency === 1,
+          'urgency-urgent': systemTodo.urgency === 2,
+        }"
+      >
+        <v-card-text class="pa-3">
+          <v-row no-gutters align="center" class="todo-row">
           <!-- Title -->
           <v-col cols="6" class="todo-title"> [{{ systemTodo.systemName }}]{{ systemTodo.title }} </v-col>
 
@@ -190,9 +175,10 @@ const deleteTodo = async (id: number) => {
               <v-icon>mdi-plus</v-icon>
             </v-btn>
           </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </MotionReveal>
   </v-container>
 
   <!-- Vuetify Dialog -->

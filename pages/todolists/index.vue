@@ -202,8 +202,9 @@ const deleteTodo = async (id: number) => {
 
     <div class="hint mb-4">*按鈕切換狀態>> N: 未開始 P: 進行中 S: 擱置中 C: 已完成 D: 刪除</div>
 
-    <v-card class="add-block mb-4 wow animate__slideInUp">
-      <v-card-text class="pa-4">
+    <MotionReveal>
+      <v-card class="add-block mb-4">
+        <v-card-text class="pa-4">
         <v-row align="start" no-gutters>
           <v-col cols="12" sm="2" class="mb-2 mb-sm-0 px-1">
             <v-select
@@ -257,12 +258,14 @@ const deleteTodo = async (id: number) => {
               <v-icon end>mdi-send</v-icon>
             </v-btn>
           </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </MotionReveal>
 
-    <v-card v-for="todo in todos" :key="todo.id" class="todo-card mb-3 floatup-div wow animate__slideInUp">
-      <v-card-text class="d-flex align-center pa-3">
+    <MotionReveal v-for="todo in todos" :key="todo.id">
+      <v-card class="todo-card mb-3 floatup-div">
+        <v-card-text class="d-flex align-center pa-3">
         <v-row no-gutters align="center">
           <!-- Title with deadline -->
           <v-col cols="8" sm="6" class="todo-title-wrapper">
@@ -332,9 +335,10 @@ const deleteTodo = async (id: number) => {
             <v-chip v-else-if="todo.status === 3" color="success" size="default" variant="flat">已完成</v-chip>
             <v-chip v-else size="default" variant="flat">?</v-chip>
           </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </MotionReveal>
   </v-container>
 </template>
 

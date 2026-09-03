@@ -1,18 +1,20 @@
 <template>
-  <v-container class="main-block">
-    <v-card class="error-card floatup-div wow animate__flipInX">
-      <v-card-text class="center-content">
-        <div class="error-code">404</div>
-        <div class="error-hint">Page Not Found</div>
-        <div class="error-message">找不到該頁面！請確定網址輸入正確</div>
-        <div class="go-home-button">
-          <v-btn color="primary" variant="elevated" size="large" to="/" class="button-submit">
-            回到首頁
-            <v-icon end>mdi-home</v-icon>
-          </v-btn>
-        </div>
-      </v-card-text>
-    </v-card>
+  <v-container fluid class="main-block">
+    <MotionReveal hoverable>
+      <v-card class="error-card">
+        <v-card-text class="center-content">
+          <div class="error-code">404</div>
+          <div class="error-hint">Page Not Found</div>
+          <div class="error-message">找不到該頁面！請確定網址輸入正確</div>
+          <div class="go-home-button">
+            <v-btn color="primary" variant="elevated" size="large" to="/" class="button-submit">
+              回到首頁
+              <v-icon end>mdi-home</v-icon>
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+    </MotionReveal>
   </v-container>
 </template>
 
@@ -24,6 +26,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  :deep(.motion-reveal) {
+    width: 100%;
+    max-width: 960px;
+  }
 }
 
 .error-card {

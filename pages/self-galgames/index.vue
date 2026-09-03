@@ -64,14 +64,13 @@ const formatDate = (date: string) => dayjs(date).format("YYYY-MM-DD");
       </v-card-text>
     </v-card>
 
-    <v-card
+    <MotionReveal
       v-for="game in sortedGameList"
       :key="game.gameErogsId"
-      class="game-card mb-3 floatup-div wow animate__slideInUp"
-      color="background"
     >
-      <v-card-text class="pa-3">
-        <v-row align="center" no-gutters>
+      <v-card class="game-card mb-3 floatup-div" color="background">
+        <v-card-text class="pa-3">
+          <v-row align="center" no-gutters>
           <v-col cols="12" sm="5" class="game-name">{{ game.gameName }}</v-col>
           <v-col cols="12" sm="3" class="text-center">{{ game.brandName }}</v-col>
           <v-col cols="12" sm="2" class="text-center">
@@ -88,9 +87,10 @@ const formatDate = (date: string) => dayjs(date).format("YYYY-MM-DD");
               >{{ game.gameErogsId }}</a
             >
           </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </MotionReveal>
   </v-container>
 </template>
 
