@@ -15,11 +15,6 @@ onMounted(async () => {
       bar.classList.add("loading-hidden");
     }, 100);
   }
-  // @ts-ignore
-  if (window.WOW) {
-    // @ts-ignore
-    new WOW().init();
-  }
 });
 </script>
 
