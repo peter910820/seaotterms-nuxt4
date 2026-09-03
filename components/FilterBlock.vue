@@ -60,9 +60,10 @@ if (import.meta.client && error.value) {
 
 <template>
   <!-- 嵌入其他頁面，所以不用寫main-block -->
-  <v-card class="filter-block wow animate__slideInUp mb-4">
-    <v-card-text class="pa-4">
-      <v-row align="center" no-gutters>
+  <MotionReveal>
+    <v-card class="filter-block mb-4">
+      <v-card-text class="pa-4">
+        <v-row align="center" no-gutters>
         <v-col cols="12" sm="1" class="text-center text-sm-left mb-2 mb-sm-0">
           <span class="filter-label">篩選器</span>
         </v-col>
@@ -112,9 +113,10 @@ if (import.meta.client && error.value) {
             <v-icon end>mdi-send</v-icon>
           </v-btn>
         </v-col>
-      </v-row>
-    </v-card-text>
-  </v-card>
+        </v-row>
+      </v-card-text>
+    </v-card>
+  </MotionReveal>
 </template>
 
 <style lang="scss" scoped>
