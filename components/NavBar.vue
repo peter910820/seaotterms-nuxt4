@@ -188,10 +188,18 @@ const handleLogout = () => {
           登入
         </v-btn>
         <template v-else>
-          <v-btn variant="text" rounded="pill" :ripple="false" prepend-icon="mdi-account-circle" @click.prevent="profileDrawer = true">
+          <v-btn
+            variant="text"
+            rounded="pill"
+            :ripple="false"
+            prepend-icon="mdi-account-circle"
+            @click.prevent="profileDrawer = true"
+          >
             個人資料
           </v-btn>
-          <v-btn variant="text" rounded="pill" :ripple="false" prepend-icon="mdi-logout" @click.prevent="handleLogout">登出</v-btn>
+          <v-btn variant="text" rounded="pill" :ripple="false" prepend-icon="mdi-logout" @click.prevent="handleLogout"
+            >登出</v-btn
+          >
         </template>
       </v-sheet>
     </div>
@@ -327,7 +335,7 @@ const handleLogout = () => {
 
 :deep(.v-menu .v-list-item) {
   background-color: rgb(var(--v-theme-background));
-  
+
   &:hover {
     background-color: rgba(var(--v-theme-primary), 0.1);
   }
