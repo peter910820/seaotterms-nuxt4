@@ -13,7 +13,6 @@ const drawer = ref(false);
 const profileDrawer = ref(false);
 
 const todoMenu = ref(false);
-const galgameMenu = ref(false);
 const otherMenu = ref(false);
 
 interface NavigationItem {
@@ -32,6 +31,7 @@ interface NavigationMenu {
 const primaryNavigationItems: NavigationItem[] = [
   { to: "/", icon: "mdi-home", title: "首頁" },
   { to: "/system-todos", icon: "mdi-calendar-clock", title: "系統更新待辦" },
+  { to: "/self-galgames", icon: "mdi-dice-multiple", title: "Galgame紀錄" },
 ];
 
 const navigationMenus = {
@@ -42,11 +42,6 @@ const navigationMenus = {
       { to: "/todolists", icon: "mdi-format-list-checks", title: "TodoList" },
       { to: "/todo-topics/create", icon: "mdi-tag-plus", title: "建立Todo類別" },
     ],
-  },
-  galgame: {
-    name: "Galgame",
-    icon: "mdi-dice-multiple",
-    items: [{ to: "/self-galgames", icon: "mdi-dice-multiple", title: "Galgame紀錄" }],
   },
   other: {
     name: "其他功能",
@@ -59,7 +54,7 @@ const navigationMenus = {
   },
 } satisfies Record<string, NavigationMenu>;
 
-const { todo: todoNavigationMenu, galgame: galgameNavigationMenu, other: otherNavigationMenu } = navigationMenus;
+const { todo: todoNavigationMenu, other: otherNavigationMenu } = navigationMenus;
 const isAuthenticated = computed(() => userData.value.id !== 0);
 const getVisibleNavigationItems = (items: NavigationItem[]) =>
   items.filter((item) => !item.requiresAuthentication || isAuthenticated.value);
@@ -143,34 +138,6 @@ const handleLogout = () => {
           <v-list bg-color="background" rounded="xl">
             <v-list-item
               v-for="item in getVisibleNavigationItems(todoNavigationMenu.items)"
-              :key="item.to"
-              :active="false"
-              :to="item.to"
-              :prepend-icon="item.icon"
-              :title="item.title"
-            ></v-list-item>
-          </v-list>
-        </v-menu>
-      </v-sheet>
-
-      <v-sheet class="nav-group" color="surface" border rounded="pill">
-        <v-menu v-model="galgameMenu" location="bottom" transition="fade-transition">
-          <template v-slot:activator="{ props }">
-            <v-btn
-              v-bind="props"
-              variant="text"
-              rounded="pill"
-              :ripple="false"
-              :active="isNavigationMenuActive(galgameNavigationMenu)"
-              :prepend-icon="galgameNavigationMenu.icon"
-              append-icon="mdi-menu-down"
-            >
-              {{ galgameNavigationMenu.name }}
-            </v-btn>
-          </template>
-          <v-list bg-color="background" rounded="xl">
-            <v-list-item
-              v-for="item in getVisibleNavigationItems(galgameNavigationMenu.items)"
               :key="item.to"
               :active="false"
               :to="item.to"
