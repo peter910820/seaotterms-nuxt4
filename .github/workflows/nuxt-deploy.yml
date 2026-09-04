@@ -69,12 +69,24 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REPO_NAME: ${{ github.event.repository.name }}
+      SERVICE_NAME: ${{ github.event.repository.name }}
     steps:
       - name: Download build output
         uses: actions/download-artifact@v4
         with:
           name: nuxt-output
           path: dist
+
+      - name: Stop systemd service
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            systemctl --user stop "${{ env.SERVICE_NAME }}.service" || true
 
       - name: Ensure remote deploy directory
         uses: appleboy/ssh-action@v1.2.0
@@ -98,7 +110,19 @@ jobs:
           strip_components: 1
           overwrite: true
 
+      - name: Start systemd service
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            systemctl --user start "${{ env.SERVICE_NAME }}.service"
+
       - name: Show deployment info
         run: |
           echo "部署 ref：${{ github.ref }} (${{ github.sha }})"
           echo "已部署至 ${{ secrets.VPS_DEPLOY_BASE }}/${{ env.REPO_NAME }}/"
+          echo "已重啟 systemd 服務：${{ env.SERVICE_NAME }}.service"
