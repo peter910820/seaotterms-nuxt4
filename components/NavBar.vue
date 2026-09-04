@@ -15,6 +15,58 @@ const todoMenu = ref(false);
 const galgameMenu = ref(false);
 const otherMenu = ref(false);
 
+interface NavigationItem {
+  to: string;
+  icon: string;
+  title: string;
+  requiresAuthentication?: boolean;
+}
+
+interface NavigationMenu {
+  name: string;
+  icon: string;
+  items: NavigationItem[];
+}
+
+const primaryNavigationItems: NavigationItem[] = [
+  { to: "/", icon: "mdi-home", title: "首頁" },
+  { to: "/system-todos", icon: "mdi-calendar-clock", title: "系統更新待辦" },
+];
+
+const navigationMenus = {
+  todo: {
+    name: "Todo",
+    icon: "mdi-check-circle",
+    items: [
+      { to: "/todolists", icon: "mdi-format-list-checks", title: "TodoList" },
+      { to: "/todo-topics/create", icon: "mdi-tag-plus", title: "建立Todo類別" },
+    ],
+  },
+  galgame: {
+    name: "Galgame",
+    icon: "mdi-dice-multiple",
+    items: [{ to: "/self-galgames", icon: "mdi-dice-multiple", title: "Galgame紀錄" }],
+  },
+  other: {
+    name: "其他功能",
+    icon: "mdi-home-group",
+    items: [
+      { to: "/articles/create", icon: "mdi-pencil", title: "建立文章" },
+      { to: "/todo-topics/system/create", icon: "mdi-server", title: "建立系統站台" },
+      { to: "/user-maintain", icon: "mdi-account-cog", title: "使用者帳號維護", requiresAuthentication: true },
+    ],
+  },
+} satisfies Record<string, NavigationMenu>;
+
+const { todo: todoNavigationMenu, galgame: galgameNavigationMenu, other: otherNavigationMenu } = navigationMenus;
+const isAuthenticated = computed(() => userData.value.id !== 0);
+const getVisibleNavigationItems = (items: NavigationItem[]) =>
+  items.filter((item) => !item.requiresAuthentication || isAuthenticated.value);
+const mobileNavigationItems = computed(() => [
+  ...primaryNavigationItems,
+  ...Object.values(navigationMenus).flatMap((menu) => getVisibleNavigationItems(menu.items)),
+]);
+
 const toggleTheme = () => {
   theme.global.name.value = theme.global.name.value === "darkness-theme" ? "v1-theme" : "darkness-theme";
 };
@@ -56,53 +108,63 @@ const handleLogout = () => {
 
     <!-- Desktop Navigation -->
     <div class="d-none d-md-flex align-center">
-      <v-btn variant="text" to="/" prepend-icon="mdi-home">首頁</v-btn>
-
-      <v-btn variant="text" to="/system-todos" prepend-icon="mdi-calendar-clock">系統更新待辦</v-btn>
+      <v-btn v-for="item in primaryNavigationItems" :key="item.to" variant="text" :to="item.to" :prepend-icon="item.icon">
+        {{ item.title }}
+      </v-btn>
 
       <v-menu v-model="todoMenu" location="bottom">
         <template v-slot:activator="{ props }">
-          <v-btn variant="text" v-bind="props" prepend-icon="mdi-check-circle" append-icon="mdi-menu-down">
-            Todo
+          <v-btn variant="text" v-bind="props" :prepend-icon="todoNavigationMenu.icon" append-icon="mdi-menu-down">
+            {{ todoNavigationMenu.name }}
           </v-btn>
         </template>
         <v-list color="background">
-          <v-list-item to="/todolists" prepend-icon="mdi-format-list-checks" title="TodoList"></v-list-item>
-          <v-list-item to="/todo-topics/create" prepend-icon="mdi-tag-plus" title="建立Todo類別"></v-list-item>
+          <v-list-item
+            v-for="item in getVisibleNavigationItems(todoNavigationMenu.items)"
+            :key="item.to"
+            :to="item.to"
+            :prepend-icon="item.icon"
+            :title="item.title"
+          ></v-list-item>
         </v-list>
       </v-menu>
 
       <v-menu v-model="galgameMenu" location="bottom">
         <template v-slot:activator="{ props }">
-          <v-btn variant="text" v-bind="props" prepend-icon="mdi-dice-multiple" append-icon="mdi-menu-down">
-            Galgame
+          <v-btn variant="text" v-bind="props" :prepend-icon="galgameNavigationMenu.icon" append-icon="mdi-menu-down">
+            {{ galgameNavigationMenu.name }}
           </v-btn>
         </template>
         <v-list color="background">
-          <v-list-item to="/self-galgames" prepend-icon="mdi-dice-multiple" title="Galgame紀錄"></v-list-item>
+          <v-list-item
+            v-for="item in getVisibleNavigationItems(galgameNavigationMenu.items)"
+            :key="item.to"
+            :to="item.to"
+            :prepend-icon="item.icon"
+            :title="item.title"
+          ></v-list-item>
         </v-list>
       </v-menu>
 
       <v-menu v-model="otherMenu" location="bottom">
         <template v-slot:activator="{ props }">
-          <v-btn variant="text" v-bind="props" prepend-icon="mdi-home-group" append-icon="mdi-menu-down">
-            其他功能
+          <v-btn variant="text" v-bind="props" :prepend-icon="otherNavigationMenu.icon" append-icon="mdi-menu-down">
+            {{ otherNavigationMenu.name }}
           </v-btn>
         </template>
         <v-list color="background">
-          <v-list-item to="/articles/create" prepend-icon="mdi-pencil" title="建立文章"></v-list-item>
-          <v-list-item to="/todo-topics/system/create" prepend-icon="mdi-server" title="建立系統站台"></v-list-item>
           <v-list-item
-            v-if="userData.id !== undefined && userData.id !== 0"
-            to="/user-maintain"
-            prepend-icon="mdi-account-cog"
-            title="使用者帳號維護"
+            v-for="item in getVisibleNavigationItems(otherNavigationMenu.items)"
+            :key="item.to"
+            :to="item.to"
+            :prepend-icon="item.icon"
+            :title="item.title"
           ></v-list-item>
         </v-list>
       </v-menu>
 
       <v-btn
-        v-if="userData.username === '' || userData.username === undefined"
+        v-if="!isAuthenticated"
         variant="text"
         prepend-icon="mdi-login"
         @click.prevent="openLoginModal"
@@ -121,46 +183,16 @@ const handleLogout = () => {
   <!-- Mobile Navigation Drawer -->
   <v-navigation-drawer v-model="drawer" temporary location="left" class="mobile-drawer">
     <v-list>
-      <v-list-item to="/" prepend-icon="mdi-home" title="首頁" @click="drawer = false"></v-list-item>
       <v-list-item
-        to="/system-todos"
-        prepend-icon="mdi-calendar-clock"
-        title="系統更新待辦"
+        v-for="item in mobileNavigationItems"
+        :key="item.to"
+        :to="item.to"
+        :prepend-icon="item.icon"
+        :title="item.title"
         @click="drawer = false"
       ></v-list-item>
       <v-list-item
-        to="/self-galgames"
-        prepend-icon="mdi-dice-multiple"
-        title="Galgame紀錄"
-        @click="drawer = false"
-      ></v-list-item>
-      <v-list-item
-        to="/todolists"
-        prepend-icon="mdi-format-list-checks"
-        title="TodoList"
-        @click="drawer = false"
-      ></v-list-item>
-      <v-list-item
-        to="/todo-topics/create"
-        prepend-icon="mdi-tag-plus"
-        title="建立Todo類別"
-        @click="drawer = false"
-      ></v-list-item>
-      <v-list-item
-        to="/articles/create"
-        prepend-icon="mdi-pencil"
-        title="建立文章"
-        @click="drawer = false"
-      ></v-list-item>
-      <v-list-item
-        v-if="userData.username !== '' && userData.username !== undefined"
-        to="/user-maintain"
-        prepend-icon="mdi-account-cog"
-        title="使用者帳號維護"
-        @click="drawer = false"
-      ></v-list-item>
-      <v-list-item
-        v-if="userData.username !== '' && userData.username !== undefined"
+        v-if="isAuthenticated"
         prepend-icon="mdi-account-circle"
         title="個人資料"
         @click="
@@ -169,7 +201,7 @@ const handleLogout = () => {
         "
       ></v-list-item>
       <v-list-item
-        v-if="userData.username === '' || userData.username === undefined"
+        v-if="!isAuthenticated"
         prepend-icon="mdi-login"
         title="登入"
         @click="
