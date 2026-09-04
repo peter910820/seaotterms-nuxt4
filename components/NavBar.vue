@@ -6,6 +6,7 @@ const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const { showLoginModal, openLoginModal } = useLoginModal();
 
+const route = useRoute();
 const theme = useTheme();
 const userData = computed(() => user.value);
 const drawer = ref(false);
@@ -62,6 +63,7 @@ const { todo: todoNavigationMenu, galgame: galgameNavigationMenu, other: otherNa
 const isAuthenticated = computed(() => userData.value.id !== 0);
 const getVisibleNavigationItems = (items: NavigationItem[]) =>
   items.filter((item) => !item.requiresAuthentication || isAuthenticated.value);
+const isNavigationMenuActive = (menu: NavigationMenu) => menu.items.some((item) => route.path === item.to);
 const mobileNavigationItems = computed(() => [
   ...primaryNavigationItems,
   ...Object.values(navigationMenus).flatMap((menu) => getVisibleNavigationItems(menu.items)),
@@ -107,74 +109,118 @@ const handleLogout = () => {
     </v-btn>
 
     <!-- Desktop Navigation -->
-    <div class="d-none d-md-flex align-center">
-      <v-btn v-for="item in primaryNavigationItems" :key="item.to" variant="text" :to="item.to" :prepend-icon="item.icon">
-        {{ item.title }}
-      </v-btn>
+    <div class="desktop-navigation d-none d-md-flex align-center">
+      <v-sheet class="nav-group" color="surface" border rounded="pill">
+        <v-btn
+          v-for="item in primaryNavigationItems"
+          :key="item.to"
+          variant="text"
+          rounded="pill"
+          :to="item.to"
+          :prepend-icon="item.icon"
+        >
+          {{ item.title }}
+        </v-btn>
+      </v-sheet>
 
-      <v-menu v-model="todoMenu" location="bottom">
-        <template v-slot:activator="{ props }">
-          <v-btn variant="text" v-bind="props" :prepend-icon="todoNavigationMenu.icon" append-icon="mdi-menu-down">
-            {{ todoNavigationMenu.name }}
+      <v-sheet class="nav-group" color="surface" border rounded="pill">
+        <v-menu v-model="todoMenu" location="bottom">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+              variant="text"
+              rounded="pill"
+              :active="isNavigationMenuActive(todoNavigationMenu)"
+              :prepend-icon="todoNavigationMenu.icon"
+              append-icon="mdi-menu-down"
+            >
+              {{ todoNavigationMenu.name }}
+            </v-btn>
+          </template>
+          <v-list bg-color="background" rounded="xl">
+            <v-list-item
+              v-for="item in getVisibleNavigationItems(todoNavigationMenu.items)"
+              :key="item.to"
+              :active="false"
+              :to="item.to"
+              :prepend-icon="item.icon"
+              :title="item.title"
+            ></v-list-item>
+          </v-list>
+        </v-menu>
+      </v-sheet>
+
+      <v-sheet class="nav-group" color="surface" border rounded="pill">
+        <v-menu v-model="galgameMenu" location="bottom">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+              variant="text"
+              rounded="pill"
+              :active="isNavigationMenuActive(galgameNavigationMenu)"
+              :prepend-icon="galgameNavigationMenu.icon"
+              append-icon="mdi-menu-down"
+            >
+              {{ galgameNavigationMenu.name }}
+            </v-btn>
+          </template>
+          <v-list bg-color="background" rounded="xl">
+            <v-list-item
+              v-for="item in getVisibleNavigationItems(galgameNavigationMenu.items)"
+              :key="item.to"
+              :active="false"
+              :to="item.to"
+              :prepend-icon="item.icon"
+              :title="item.title"
+            ></v-list-item>
+          </v-list>
+        </v-menu>
+      </v-sheet>
+
+      <v-sheet class="nav-group" color="surface" border rounded="pill">
+        <v-menu v-model="otherMenu" location="bottom">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+              variant="text"
+              rounded="pill"
+              :active="isNavigationMenuActive(otherNavigationMenu)"
+              :prepend-icon="otherNavigationMenu.icon"
+              append-icon="mdi-menu-down"
+            >
+              {{ otherNavigationMenu.name }}
+            </v-btn>
+          </template>
+          <v-list bg-color="background" rounded="xl">
+            <v-list-item
+              v-for="item in getVisibleNavigationItems(otherNavigationMenu.items)"
+              :key="item.to"
+              :active="false"
+              :to="item.to"
+              :prepend-icon="item.icon"
+              :title="item.title"
+            ></v-list-item>
+          </v-list>
+        </v-menu>
+      </v-sheet>
+
+      <v-sheet class="nav-group" color="surface" border rounded="pill">
+        <v-btn
+          v-if="!isAuthenticated"
+          variant="text"
+          rounded="pill"
+          prepend-icon="mdi-login"
+          @click.prevent="openLoginModal"
+        >
+          登入
+        </v-btn>
+        <template v-else>
+          <v-btn variant="text" rounded="pill" prepend-icon="mdi-account-circle" @click.prevent="profileDrawer = true">
+            個人資料
           </v-btn>
+          <v-btn variant="text" rounded="pill" prepend-icon="mdi-logout" @click.prevent="handleLogout">登出</v-btn>
         </template>
-        <v-list color="background">
-          <v-list-item
-            v-for="item in getVisibleNavigationItems(todoNavigationMenu.items)"
-            :key="item.to"
-            :to="item.to"
-            :prepend-icon="item.icon"
-            :title="item.title"
-          ></v-list-item>
-        </v-list>
-      </v-menu>
-
-      <v-menu v-model="galgameMenu" location="bottom">
-        <template v-slot:activator="{ props }">
-          <v-btn variant="text" v-bind="props" :prepend-icon="galgameNavigationMenu.icon" append-icon="mdi-menu-down">
-            {{ galgameNavigationMenu.name }}
-          </v-btn>
-        </template>
-        <v-list color="background">
-          <v-list-item
-            v-for="item in getVisibleNavigationItems(galgameNavigationMenu.items)"
-            :key="item.to"
-            :to="item.to"
-            :prepend-icon="item.icon"
-            :title="item.title"
-          ></v-list-item>
-        </v-list>
-      </v-menu>
-
-      <v-menu v-model="otherMenu" location="bottom">
-        <template v-slot:activator="{ props }">
-          <v-btn variant="text" v-bind="props" :prepend-icon="otherNavigationMenu.icon" append-icon="mdi-menu-down">
-            {{ otherNavigationMenu.name }}
-          </v-btn>
-        </template>
-        <v-list color="background">
-          <v-list-item
-            v-for="item in getVisibleNavigationItems(otherNavigationMenu.items)"
-            :key="item.to"
-            :to="item.to"
-            :prepend-icon="item.icon"
-            :title="item.title"
-          ></v-list-item>
-        </v-list>
-      </v-menu>
-
-      <v-btn
-        v-if="!isAuthenticated"
-        variant="text"
-        prepend-icon="mdi-login"
-        @click.prevent="openLoginModal"
-      >
-        登入
-      </v-btn>
-      <template v-else>
-        <v-btn variant="text" prepend-icon="mdi-account-circle" @click.prevent="profileDrawer = true"> 個人資料 </v-btn>
-        <v-btn variant="text" prepend-icon="mdi-logout" @click.prevent="handleLogout">登出</v-btn>
-      </template>
+      </v-sheet>
     </div>
 
     <LoginModal v-model="showLoginModal" />
@@ -252,6 +298,17 @@ const handleLogout = () => {
   }
 }
 
+.desktop-navigation {
+  gap: 8px;
+}
+
+.nav-group {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 2px;
+}
+
 .mobile-drawer {
   background-color: rgb(var(--v-theme-background)) !important;
 }
@@ -281,6 +338,8 @@ const handleLogout = () => {
 
 :deep(.v-menu .v-overlay__content) {
   background-color: rgb(var(--v-theme-background));
+  border-radius: var(--v-border-radius-xl);
+  overflow: hidden;
 }
 
 :deep(.v-menu .v-list) {
