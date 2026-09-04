@@ -88,8 +88,8 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <v-app-bar color="background" elevation="2" class="navbar" app>
-    <v-app-bar-nav-icon @click="drawer = !drawer" class="d-md-none"></v-app-bar-nav-icon>
+  <v-app-bar color="background" elevation="0" class="navbar" app>
+    <v-app-bar-nav-icon :ripple="false" @click="drawer = !drawer" class="d-md-none"></v-app-bar-nav-icon>
 
     <v-app-bar-title>
       <NuxtLink to="/" class="brand-link">Home</NuxtLink>
@@ -101,6 +101,7 @@ const handleLogout = () => {
     <v-btn
       icon
       variant="text"
+      :ripple="false"
       @click="toggleTheme"
       class="theme-toggle-btn"
       :title="theme.global.name.value === 'darkness-theme' ? '切換到淺色主題' : '切換到深色主題'"
@@ -116,6 +117,7 @@ const handleLogout = () => {
           :key="item.to"
           variant="text"
           rounded="pill"
+          :ripple="false"
           :to="item.to"
           :prepend-icon="item.icon"
         >
@@ -124,12 +126,13 @@ const handleLogout = () => {
       </v-sheet>
 
       <v-sheet class="nav-group" color="surface" border rounded="pill">
-        <v-menu v-model="todoMenu" location="bottom">
+        <v-menu v-model="todoMenu" location="bottom" transition="fade-transition">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
               variant="text"
               rounded="pill"
+              :ripple="false"
               :active="isNavigationMenuActive(todoNavigationMenu)"
               :prepend-icon="todoNavigationMenu.icon"
               append-icon="mdi-menu-down"
@@ -151,12 +154,13 @@ const handleLogout = () => {
       </v-sheet>
 
       <v-sheet class="nav-group" color="surface" border rounded="pill">
-        <v-menu v-model="galgameMenu" location="bottom">
+        <v-menu v-model="galgameMenu" location="bottom" transition="fade-transition">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
               variant="text"
               rounded="pill"
+              :ripple="false"
               :active="isNavigationMenuActive(galgameNavigationMenu)"
               :prepend-icon="galgameNavigationMenu.icon"
               append-icon="mdi-menu-down"
@@ -178,12 +182,13 @@ const handleLogout = () => {
       </v-sheet>
 
       <v-sheet class="nav-group" color="surface" border rounded="pill">
-        <v-menu v-model="otherMenu" location="bottom">
+        <v-menu v-model="otherMenu" location="bottom" transition="fade-transition">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
               variant="text"
               rounded="pill"
+              :ripple="false"
               :active="isNavigationMenuActive(otherNavigationMenu)"
               :prepend-icon="otherNavigationMenu.icon"
               append-icon="mdi-menu-down"
@@ -209,16 +214,17 @@ const handleLogout = () => {
           v-if="!isAuthenticated"
           variant="text"
           rounded="pill"
+          :ripple="false"
           prepend-icon="mdi-login"
           @click.prevent="openLoginModal"
         >
           登入
         </v-btn>
         <template v-else>
-          <v-btn variant="text" rounded="pill" prepend-icon="mdi-account-circle" @click.prevent="profileDrawer = true">
+          <v-btn variant="text" rounded="pill" :ripple="false" prepend-icon="mdi-account-circle" @click.prevent="profileDrawer = true">
             個人資料
           </v-btn>
-          <v-btn variant="text" rounded="pill" prepend-icon="mdi-logout" @click.prevent="handleLogout">登出</v-btn>
+          <v-btn variant="text" rounded="pill" :ripple="false" prepend-icon="mdi-logout" @click.prevent="handleLogout">登出</v-btn>
         </template>
       </v-sheet>
     </div>
@@ -232,6 +238,7 @@ const handleLogout = () => {
       <v-list-item
         v-for="item in mobileNavigationItems"
         :key="item.to"
+        :ripple="false"
         :to="item.to"
         :prepend-icon="item.icon"
         :title="item.title"
@@ -239,6 +246,7 @@ const handleLogout = () => {
       ></v-list-item>
       <v-list-item
         v-if="isAuthenticated"
+        :ripple="false"
         prepend-icon="mdi-account-circle"
         title="個人資料"
         @click="
@@ -248,6 +256,7 @@ const handleLogout = () => {
       ></v-list-item>
       <v-list-item
         v-if="!isAuthenticated"
+        :ripple="false"
         prepend-icon="mdi-login"
         title="登入"
         @click="
@@ -255,10 +264,11 @@ const handleLogout = () => {
           drawer = false;
         "
       ></v-list-item>
-      <v-list-item v-else prepend-icon="mdi-logout" title="登出" @click="handleLogout"></v-list-item>
+      <v-list-item v-else :ripple="false" prepend-icon="mdi-logout" title="登出" @click="handleLogout"></v-list-item>
       <v-divider class="my-2"></v-divider>
       <v-list-item
         :prepend-icon="theme.global.name.value === 'darkness-theme' ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+        :ripple="false"
         :title="theme.global.name.value === 'darkness-theme' ? '切換到淺色主題' : '切換到深色主題'"
         @click="toggleTheme"
       ></v-list-item>
@@ -270,7 +280,7 @@ const handleLogout = () => {
     <template v-slot:prepend>
       <v-toolbar color="transparent" density="compact">
         <v-spacer></v-spacer>
-        <v-btn icon variant="text" @click="profileDrawer = false">
+        <v-btn icon variant="text" :ripple="false" @click="profileDrawer = false">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-toolbar>
@@ -311,10 +321,12 @@ const handleLogout = () => {
 
 .mobile-drawer {
   background-color: rgb(var(--v-theme-background)) !important;
+  transition-duration: 120ms !important;
 }
 
 .profile-drawer {
   background-color: rgb(var(--v-theme-background)) !important;
+  transition-duration: 120ms !important;
 
   // Hide scrollbar but keep scroll functionality
   :deep(.v-navigation-drawer__content) {
@@ -351,6 +363,14 @@ const handleLogout = () => {
   
   &:hover {
     background-color: rgba(var(--v-theme-primary), 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-drawer,
+  .profile-drawer,
+  :deep(.v-menu .v-overlay__content) {
+    transition: none !important;
   }
 }
 </style>
