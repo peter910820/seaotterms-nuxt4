@@ -74,27 +74,32 @@ const changeStatus = async (id: number, status: number) => {
       break;
   }
   if (confirm(`確定調整狀態為${statusText}?`)) {
-    await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos/quick/${id}`, {
-      baseURL: useRuntimeConfig().public.apiUrl,
-      method: "PATCH",
-      credentials: "include",
-      body: {
-        status: status,
-        updatedName: user.value.username,
-      },
-    });
-    let response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos?id=${id}`, {
-      baseURL: useRuntimeConfig().public.apiUrl,
-      method: "GET",
-    });
-    systemTodoStore.setSingle(response.data);
-    response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos`, {
-      baseURL: useRuntimeConfig().public.apiUrl,
-      method: "GET",
-      credentials: "include",
-    });
-    userInfoHandler(response.userInfo);
-    systemTodoStore.set(response.data);
+    try {
+      await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos/quick/${id}`, {
+        baseURL: useRuntimeConfig().public.apiUrl,
+        method: "PATCH",
+        credentials: "include",
+        body: {
+          status: status,
+          updatedName: user.value.username,
+        },
+      });
+      let response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos?id=${id}`, {
+        baseURL: useRuntimeConfig().public.apiUrl,
+        method: "GET",
+        credentials: "include",
+      });
+      systemTodoStore.setSingle(response.data);
+      response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos`, {
+        baseURL: useRuntimeConfig().public.apiUrl,
+        method: "GET",
+        credentials: "include",
+      });
+      userInfoHandler(response.userInfo);
+      systemTodoStore.set(response.data);
+    } catch (error) {
+      errorHandler(error);
+    }
   }
 };
 
@@ -105,25 +110,28 @@ const goToEditPage = async (id: number) => {
 
 const deleteTodo = async (id: number) => {
   if (confirm("確定刪除?")) {
-    // 原本沒處理錯誤，之後再調整
-    await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos/${id}`, {
-      baseURL: useRuntimeConfig().public.apiUrl,
-      method: "DELETE",
-      credentials: "include",
-    });
-    let response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos?id=${id}`, {
-      baseURL: useRuntimeConfig().public.apiUrl,
-      method: "GET",
-      credentials: "include",
-    });
-    systemTodoStore.setSingle(response.data);
-    response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos`, {
-      baseURL: useRuntimeConfig().public.apiUrl,
-      method: "GET",
-      credentials: "include",
-    });
+    try {
+      await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos/${id}`, {
+        baseURL: useRuntimeConfig().public.apiUrl,
+        method: "DELETE",
+        credentials: "include",
+      });
+      let response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos?id=${id}`, {
+        baseURL: useRuntimeConfig().public.apiUrl,
+        method: "GET",
+        credentials: "include",
+      });
+      systemTodoStore.setSingle(response.data);
+      response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos`, {
+        baseURL: useRuntimeConfig().public.apiUrl,
+        method: "GET",
+        credentials: "include",
+      });
 
-    systemTodoStore.set(response.data);
+      systemTodoStore.set(response.data);
+    } catch (error) {
+      errorHandler(error);
+    }
   }
 };
 </script>
