@@ -8,11 +8,13 @@ import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { errorHandler } from "@/utils/errorHandler";
 import { messageStorage } from "@/utils/messageHandler";
+import { useAppConfirm } from "@/stores/useAppConfirm";
 
 import type { TodoCreateRequest } from "@/types/request";
 import type { CommonResponse, TodoQueryResponse, TodoTopicQueryResponse } from "@/types/response";
 
 const router = useRouter();
+const { confirm } = useAppConfirm();
 const todoTopicStore = useTodoTopicStore();
 const { todoTopic } = storeToRefs(todoTopicStore);
 const todoStore = useTodoStore();
@@ -109,9 +111,7 @@ const handleSubmit = async () => {
     form.value.deadline = null;
   }
 
-  if (!confirm("確定新增?")) {
-    return;
-  }
+  if (!(await confirm({ title: "確認新增", message: "確定新增?" }))) return;
 
   loading.value = true;
   try {
@@ -151,7 +151,7 @@ const changeStatus = async (id: number, status: number) => {
       statusText = "已完成";
       break;
   }
-  if (confirm(`確定調整狀態為${statusText}?`)) {
+  if (await confirm({ title: "調整狀態", message: `確定調整狀態為${statusText}?` })) {
     try {
       const response = await $fetch<CommonResponse<TodoQueryResponse[]>>(`todos/${id}`, {
         baseURL: useRuntimeConfig().public.apiUrl,
@@ -171,7 +171,7 @@ const changeStatus = async (id: number, status: number) => {
 
 // Delete
 const deleteTodo = async (id: number) => {
-  if (confirm("確定刪除?")) {
+  if (await confirm({ title: "確認刪除", message: "確定刪除?", confirmColor: "error" })) {
     try {
       const response = await $fetch<CommonResponse<TodoQueryResponse[]>>(`todos/${id}`, {
         baseURL: useRuntimeConfig().public.apiUrl,

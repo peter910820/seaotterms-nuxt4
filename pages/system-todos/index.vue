@@ -4,9 +4,11 @@ import { computed, ref } from "vue";
 import FilterBlock from "@/components/FilterBlock.vue";
 import { userInfoHandler } from "@/utils/userInfoHandler";
 import { useSystemTodoStore } from "@/stores/useTodoStore";
+import { useAppConfirm } from "@/stores/useAppConfirm";
 import type { CommonResponse, SystemTodoQueryResponse } from "@/types/response";
 
 const router = useRouter();
+const { confirm } = useAppConfirm();
 const userStore = useUserStore();
 const systemTodoStore = useSystemTodoStore();
 
@@ -73,7 +75,7 @@ const changeStatus = async (id: number, status: number) => {
       statusText = "已完成";
       break;
   }
-  if (confirm(`確定調整狀態為${statusText}?`)) {
+  if (await confirm({ title: "調整狀態", message: `確定調整狀態為${statusText}?` })) {
     try {
       await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos/quick/${id}`, {
         baseURL: useRuntimeConfig().public.apiUrl,
@@ -109,7 +111,7 @@ const goToEditPage = async (id: number) => {
 };
 
 const deleteTodo = async (id: number) => {
-  if (confirm("確定刪除?")) {
+  if (await confirm({ title: "確認刪除", message: "確定刪除?", confirmColor: "error" })) {
     try {
       await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos/${id}`, {
         baseURL: useRuntimeConfig().public.apiUrl,

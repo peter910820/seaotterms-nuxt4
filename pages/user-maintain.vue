@@ -10,11 +10,13 @@ import { storeToRefs } from "pinia";
 import { messageStorage } from "@/utils/messageHandler";
 import { userInfoHandler } from "@/utils/userInfoHandler";
 import { errorHandler } from "@/utils/errorHandler";
+import { useAppConfirm } from "@/stores/useAppConfirm";
 
 import type { CommonResponse, UserQueryResponse } from "@/types/response";
 import type { UserUpdateRequest } from "@/types/request";
 
 const router = useRouter();
+const { confirm } = useAppConfirm();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const form = ref<UserUpdateRequest>({
@@ -78,7 +80,7 @@ const handleSubmit = async () => {
 };
 
 const changeManagementStatus = async (userId: number) => {
-  if (confirm("確定修改權限?")) {
+  if (await confirm({ title: "修改權限", message: "確定修改權限?", confirmColor: "warning" })) {
     const myUser = allUserData.value.find((item) => item.id === userId);
     if (myUser) {
       try {
