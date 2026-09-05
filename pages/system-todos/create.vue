@@ -54,6 +54,7 @@ const loading = ref(false);
 const formRef = ref();
 const titleRules = [(v: string) => !!v || "此欄不能為空"];
 const systemNameRules = [(v: string) => !!v || "此欄不能為空"];
+const deadlineDateRules = [(v: string) => !v || !isNaN(Date.parse(`${v}T00:00:00Z`)) || "日期格式錯誤"];
 
 const handleSubmit = async () => {
   if (loading.value) {
@@ -66,12 +67,6 @@ const handleSubmit = async () => {
   }
   if (deadlineDate.value) {
     const dateStr = deadlineDate.value + "T00:00:00Z";
-    const timestamp = Date.parse(dateStr);
-
-    if (isNaN(timestamp)) {
-      alert("日期格式錯誤");
-      return;
-    }
     form.value.deadline = dateStr;
   } else {
     form.value.deadline = null;
@@ -154,6 +149,7 @@ const handleSubmit = async () => {
                 prepend-inner-icon="mdi-priority-high"
                 variant="outlined"
                 density="comfortable"
+                :rules="deadlineDateRules"
               />
             </v-col>
             <v-col cols="12" md="7" class="mb-4">

@@ -48,16 +48,16 @@ const changeStatus = async () => {
 };
 
 const loading = ref(false);
+const formRef = ref();
+const avatarRules = [(v: string) => !!v?.trim() || "個人圖片URL不得為空"];
 
 const handleSubmit = async () => {
   if (loading.value) {
     return;
   }
 
-  if (form.value.avatar.trim() === "") {
-    alert("個人圖片URL不得為空");
-    return;
-  }
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
   loading.value = true;
   try {
@@ -141,7 +141,7 @@ const changeManagementStatus = async (userId: number) => {
           </v-col>
         </v-row>
 
-        <v-form @submit.prevent="handleSubmit">
+        <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-text-field
             v-model="form.avatar"
             label="個人圖片URL"
@@ -150,7 +150,7 @@ const changeManagementStatus = async (userId: number) => {
             required
             class="mb-4"
             density="comfortable"
-            :rules="[(v) => !!v || '此欄不能為空']"
+            :rules="avatarRules"
           />
 
           <div class="text-center mb-4">

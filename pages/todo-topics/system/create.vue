@@ -26,13 +26,12 @@ const form = ref<TodoTopicCreateRequest>({
 });
 
 const loading = ref(false);
-const titleRules = [(v: string) => !!v || "此欄不能為空"];
+const formRef = ref();
+const titleRules = [(v: string) => !!v?.trim() || "標題不得為空"];
 
 const handleSubmit = async () => {
-  if (form.value.topicName.trim() === "") {
-    alert("標題不得為空");
-    return;
-  }
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
   loading.value = true;
   try {
@@ -58,7 +57,7 @@ const handleSubmit = async () => {
     <h1 class="page-title mb-6">建立系統站台</h1>
     <v-card class="form-card" color="background">
       <v-card-text class="pa-8">
-        <v-form @submit.prevent="handleSubmit">
+        <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-text-field
             v-model="form.topicName"
             label="Title"

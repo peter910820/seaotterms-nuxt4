@@ -32,6 +32,9 @@ const form = ref<TodoCreateRequest>({
 
 const deadlineDate = ref<string>("");
 const loading = ref(false);
+const formRef = ref();
+const topicRules = [(v: string) => !!v?.trim() || "請確保主題有正確填寫"];
+const titleRules = [(v: string) => !!v?.trim() || "請確保標題有正確填寫"];
 
 const todos = computed(() => todo.value);
 const todoTopics = computed(() => todoTopic.value);
@@ -97,24 +100,13 @@ const getDeadlineStatus = (deadline: Date | null | string) => {
 
 // Create
 const handleSubmit = async () => {
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
+
   if (deadlineDate.value) {
     form.value.deadline = new Date(deadlineDate.value);
   } else {
     form.value.deadline = null;
-  }
-
-  // Validate topic and title (must not be empty or only whitespace)
-  const topicTrimmed = form.value.topic.trim();
-  const titleTrimmed = form.value.title.trim();
-  
-  if (!topicTrimmed || topicTrimmed === "") {
-    alert("請確保主題有正確填寫");
-    return;
-  }
-  
-  if (!titleTrimmed || titleTrimmed === "") {
-    alert("請確保標題有正確填寫");
-    return;
   }
 
   if (!confirm("確定新增?")) {
@@ -205,7 +197,8 @@ const deleteTodo = async (id: number) => {
     <MotionReveal>
       <v-card class="add-block mb-4">
         <v-card-text class="pa-4">
-        <v-row align="start" no-gutters>
+        <v-form ref="formRef">
+          <v-row align="start" no-gutters>
           <v-col cols="12" sm="2" class="mb-2 mb-sm-0 px-1">
             <v-select
               v-model="form.topic"
@@ -217,7 +210,7 @@ const deleteTodo = async (id: number) => {
               prepend-inner-icon="mdi-folder"
               variant="outlined"
               density="compact"
-              :rules="[(v) => (v && v.trim() !== '') || '此欄不能為空']"
+              :rules="topicRules"
               required
               hide-details="auto"
             />
@@ -229,7 +222,7 @@ const deleteTodo = async (id: number) => {
               prepend-inner-icon="mdi-format-title"
               variant="outlined"
               density="compact"
-              :rules="[(v) => (v && v.trim() !== '') || '此欄不能為空']"
+              :rules="titleRules"
               required
               hide-details="auto"
             />
@@ -259,6 +252,7 @@ const deleteTodo = async (id: number) => {
             </v-btn>
           </v-col>
           </v-row>
+        </v-form>
         </v-card-text>
       </v-card>
     </MotionReveal>

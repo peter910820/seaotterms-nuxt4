@@ -31,7 +31,8 @@ const form = ref<ArticleCreateRequest>({
 });
 
 const loading = ref(false);
-const titleRules = [(v: string) => !!v || "此欄不能為空"];
+const formRef = ref();
+const titleRules = [(v: string) => !!v?.trim() || "標題不得為空"];
 
 const { data, error } = await useFetch<CommonResponse<TagQueryResponse[]>, CommonResponse>("tags", {
   baseURL: useRuntimeConfig().public.apiUrl,
@@ -55,10 +56,8 @@ const handleSubmit = async () => {
     return;
   }
 
-  if (form.value.title.trim() === "") {
-    alert("標題不得為空");
-    return;
-  }
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
   loading.value = true;
   try {
@@ -110,7 +109,7 @@ const renderedMarkdown = computed(() => renderMarkdown(form.value.content));
     <MotionReveal>
       <v-card class="form-card" color="background">
       <v-card-text class="pa-8">
-        <v-form @submit.prevent="handleSubmit">
+        <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-text-field
             v-model="form.title"
             label="標題"
