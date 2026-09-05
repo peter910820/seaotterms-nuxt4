@@ -24,6 +24,8 @@ onMounted(async () => {
       <div class="loader"></div>
     </div>
     <NavBar />
+    <AppSnackbar />
+    <AppConfirmDialog />
     <v-main>
       <v-container fluid class="page-container">
         <v-row class="page-row">

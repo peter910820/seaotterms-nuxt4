@@ -8,11 +8,13 @@ import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { errorHandler } from "@/utils/errorHandler";
 import { messageStorage } from "@/utils/messageHandler";
+import { useAppConfirm } from "@/stores/useAppConfirm";
 
 import type { TodoCreateRequest } from "@/types/request";
 import type { CommonResponse, TodoQueryResponse, TodoTopicQueryResponse } from "@/types/response";
 
 const router = useRouter();
+const { confirm } = useAppConfirm();
 const todoTopicStore = useTodoTopicStore();
 const { todoTopic } = storeToRefs(todoTopicStore);
 const todoStore = useTodoStore();
@@ -32,6 +34,9 @@ const form = ref<TodoCreateRequest>({
 
 const deadlineDate = ref<string>("");
 const loading = ref(false);
+const formRef = ref();
+const topicRules = [(v: string) => !!v?.trim() || "請確保主題有正確填寫"];
+const titleRules = [(v: string) => !!v?.trim() || "請確保標題有正確填寫"];
 
 const todos = computed(() => todo.value);
 const todoTopics = computed(() => todoTopic.value);
@@ -97,29 +102,16 @@ const getDeadlineStatus = (deadline: Date | null | string) => {
 
 // Create
 const handleSubmit = async () => {
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
+
   if (deadlineDate.value) {
     form.value.deadline = new Date(deadlineDate.value);
   } else {
     form.value.deadline = null;
   }
 
-  // Validate topic and title (must not be empty or only whitespace)
-  const topicTrimmed = form.value.topic.trim();
-  const titleTrimmed = form.value.title.trim();
-  
-  if (!topicTrimmed || topicTrimmed === "") {
-    alert("請確保主題有正確填寫");
-    return;
-  }
-  
-  if (!titleTrimmed || titleTrimmed === "") {
-    alert("請確保標題有正確填寫");
-    return;
-  }
-
-  if (!confirm("確定新增?")) {
-    return;
-  }
+  if (!(await confirm({ title: "確認新增", message: "確定新增?" }))) return;
 
   loading.value = true;
   try {
@@ -159,7 +151,7 @@ const changeStatus = async (id: number, status: number) => {
       statusText = "已完成";
       break;
   }
-  if (confirm(`確定調整狀態為${statusText}?`)) {
+  if (await confirm({ title: "調整狀態", message: `確定調整狀態為${statusText}?` })) {
     try {
       const response = await $fetch<CommonResponse<TodoQueryResponse[]>>(`todos/${id}`, {
         baseURL: useRuntimeConfig().public.apiUrl,
@@ -179,7 +171,7 @@ const changeStatus = async (id: number, status: number) => {
 
 // Delete
 const deleteTodo = async (id: number) => {
-  if (confirm("確定刪除?")) {
+  if (await confirm({ title: "確認刪除", message: "確定刪除?", confirmColor: "error" })) {
     try {
       const response = await $fetch<CommonResponse<TodoQueryResponse[]>>(`todos/${id}`, {
         baseURL: useRuntimeConfig().public.apiUrl,
@@ -205,7 +197,8 @@ const deleteTodo = async (id: number) => {
     <MotionReveal>
       <v-card class="add-block mb-4">
         <v-card-text class="pa-4">
-        <v-row align="start" no-gutters>
+        <v-form ref="formRef">
+          <v-row align="start" no-gutters>
           <v-col cols="12" sm="2" class="mb-2 mb-sm-0 px-1">
             <v-select
               v-model="form.topic"
@@ -217,7 +210,7 @@ const deleteTodo = async (id: number) => {
               prepend-inner-icon="mdi-folder"
               variant="outlined"
               density="compact"
-              :rules="[(v) => (v && v.trim() !== '') || '此欄不能為空']"
+              :rules="topicRules"
               required
               hide-details="auto"
             />
@@ -229,7 +222,7 @@ const deleteTodo = async (id: number) => {
               prepend-inner-icon="mdi-format-title"
               variant="outlined"
               density="compact"
-              :rules="[(v) => (v && v.trim() !== '') || '此欄不能為空']"
+              :rules="titleRules"
               required
               hide-details="auto"
             />
@@ -259,6 +252,7 @@ const deleteTodo = async (id: number) => {
             </v-btn>
           </v-col>
           </v-row>
+        </v-form>
         </v-card-text>
       </v-card>
     </MotionReveal>

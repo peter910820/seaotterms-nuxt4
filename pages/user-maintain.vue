@@ -10,11 +10,13 @@ import { storeToRefs } from "pinia";
 import { messageStorage } from "@/utils/messageHandler";
 import { userInfoHandler } from "@/utils/userInfoHandler";
 import { errorHandler } from "@/utils/errorHandler";
+import { useAppConfirm } from "@/stores/useAppConfirm";
 
 import type { CommonResponse, UserQueryResponse } from "@/types/response";
 import type { UserUpdateRequest } from "@/types/request";
 
 const router = useRouter();
+const { confirm } = useAppConfirm();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const form = ref<UserUpdateRequest>({
@@ -48,16 +50,16 @@ const changeStatus = async () => {
 };
 
 const loading = ref(false);
+const formRef = ref();
+const avatarRules = [(v: string) => !!v?.trim() || "個人圖片URL不得為空"];
 
 const handleSubmit = async () => {
   if (loading.value) {
     return;
   }
 
-  if (form.value.avatar.trim() === "") {
-    alert("個人圖片URL不得為空");
-    return;
-  }
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
   loading.value = true;
   try {
@@ -78,7 +80,7 @@ const handleSubmit = async () => {
 };
 
 const changeManagementStatus = async (userId: number) => {
-  if (confirm("確定修改權限?")) {
+  if (await confirm({ title: "修改權限", message: "確定修改權限?", confirmColor: "warning" })) {
     const myUser = allUserData.value.find((item) => item.id === userId);
     if (myUser) {
       try {
@@ -141,7 +143,7 @@ const changeManagementStatus = async (userId: number) => {
           </v-col>
         </v-row>
 
-        <v-form @submit.prevent="handleSubmit">
+        <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-text-field
             v-model="form.avatar"
             label="個人圖片URL"
@@ -150,7 +152,7 @@ const changeManagementStatus = async (userId: number) => {
             required
             class="mb-4"
             density="comfortable"
-            :rules="[(v) => !!v || '此欄不能為空']"
+            :rules="avatarRules"
           />
 
           <div class="text-center mb-4">
