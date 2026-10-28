@@ -1,8 +1,15 @@
 # seaotterms-nuxt4
 
-- 2026/01/22: 網站升級到V2，移除materializecss，使用vutify作為樣式及元件框架
-- 2025/08/16: 更新到v1.2.0版本，開始補建立Release，之後所有詳細資料移到Release說明
-- 2025/08/13: v1.0.0版本(第一次打版號),為第一個完整的正式版
+> [!NOTE]
+> 目前為 V2 版本。也可以前往 [V1 分支](https://github.com/peter910820/seaotterms-nuxt4/tree/v1) 查看先前版本。
+
+## V2 主要更新:
+
+- **框架與介面**：Nuxt 從 3 升級至 4，介面由 Materialize CSS 改用 Vuetify 3，並重新設計導覽列、表單及頁面元件。
+- **主題與互動**：新增淺色與深色主題切換，並以 Cookie 記住選擇；登入改為彈出視窗，操作訊息與確認提示也改用共用元件。
+- **待辦事項**：個人待辦路徑由 `/todolists` 改為 `/todos`，個人與系統待辦可在頁面內透過彈窗建立主題，不再使用原本的獨立建立主題頁面。
+- **遊戲頁面範圍**：保留個人遊戲列表，但移除 V1 中的品牌與遊戲新增、編輯及操作頁面。
+- **設定與部署**：新增 server 端 BFF，將 Kurohelper 上游 API 的網址與 token 留在伺服器；設定改由執行時環境變數注入，並新增建置檢查與部署工作流程。
 
 ## 架構概要
 
@@ -56,19 +63,12 @@ node server/index.mjs
 對應 `.env.example`，啟動前注入即可（build 時不必帶）：
 
 | 變數 | 說明 |
-
 |------|------|
-
 | `NITRO_HOST` / `NITRO_PORT` | 監聽位址與埠 |
-
 | `NUXT_PUBLIC_API_URL` | 前端呼叫的 API base |
-
 | `NUXT_PUBLIC_SITE_URL` | 網站 URL（SEO 等） |
-
 | `NUXT_PUBLIC_ROOT_DOMAIN` | Cookie domain |
-
 | `NUXT_KUROHELPER_API_URL` | server 端上游 API |
-
 | `NUXT_KUROHELPER_API_TOKEN` | 上游 API token |
 
 ## 注意事項:
