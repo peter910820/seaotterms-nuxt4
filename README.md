@@ -81,4 +81,4 @@ node server/index.mjs
 
 - 這樣可以避免SSR階段拿不到資料，CSR也不會重新發送請求的狀況
 
-- 目前 _MyProfile_ 因為SSR有奇怪的行為導致使用者大頭照渲染不出來，現在是將該元件用 _ClientOnly_ 的方式禁用(反正該元件的內容也不應該被SSR)
+- 目前 _Profile_ 因為SSR有奇怪的行為導致使用者大頭照渲染不出來，現在是將該元件用 _ClientOnly_ 的方式禁用(反正該元件的內容也不應該被SSR)

@@ -2,6 +2,8 @@
 import type { CommonResponse, ArticleQueryResponse } from "@/types/response";
 import { messageStorage } from "@/utils/messageHandler";
 import { errorHandler } from "@/utils/errorHandler";
+import dayjs from "dayjs";
+import MarkdownIt from "markdown-it";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Typed: any;
@@ -14,6 +16,20 @@ const { data, error } = await useFetch<CommonResponse<ArticleQueryResponse[]>, C
 });
 
 const articles = computed(() => (data.value?.data ?? []) as ArticleQueryResponse[]);
+const markdown = new MarkdownIt({ html: false });
+const articleSummary = (content: string) => {
+  const text = markdown
+    .parse(content || "", {})
+    .flatMap((token) =>
+      (token.children ?? [])
+        .filter((child) => child.type === "text" || child.type === "code_inline")
+        .map((child) => child.content),
+    )
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > 120 ? `${text.slice(0, 120)}…` : text;
+};
 
 if (import.meta.client && error.value) {
   if (error.value.statusCode === 500) {
@@ -24,19 +40,6 @@ if (import.meta.client && error.value) {
     router.push("/message");
   }
 }
-
-const link = (mod: string, target: string) => {
-  if (mod === "article") {
-    router.push(`/articles/${target}`);
-  } else {
-    router.push(`./tags/${target}`);
-  }
-};
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const tagClick = (tag: string, event: any) => {
-  event.stopPropagation();
-  link("tag", tag);
-};
 
 onMounted(() => {
   // eslint-disable-next-line no-undef
@@ -57,52 +60,55 @@ onMounted(() => {
       </div>
     </v-card>
 
-    <h1 class="mb-4">首頁/文章</h1>
-
-    <MotionReveal
-      v-for="article in articles"
-      :key="article.id"
-    >
-      <v-card class="article-card mb-4" @click="link('article', article.id.toString())">
-        <v-card-title class="article-title">{{ article.title }}</v-card-title>
-
-        <v-card-text>
-          <div class="d-flex align-center mb-2">
-            <v-icon size="small" class="mr-2">mdi-account</v-icon>
-            <span>SeaotterMS</span>
-          </div>
-
-          <div class="d-flex align-center mb-2">
-            <v-icon size="small" class="mr-2">mdi-pencil</v-icon>
-            <span class="mr-4">{{ article.createdAt }}</span>
-            <v-icon size="small" class="mr-2">mdi-update</v-icon>
-            <span>{{ article.updatedAt }}</span>
-          </div>
-
-          <div class="d-flex align-end justify-end flex-wrap">
-            <v-chip
-              v-for="tag in article.tags"
-              :key="tag.name"
-              class="ma-1"
-              size="small"
-              @click.stop="tagClick(tag.name, $event)"
-            >
-              {{ tag.name }}
-            </v-chip>
-          </div>
-        </v-card-text>
-      </v-card>
-    </MotionReveal>
+    <v-row class="mt-12" align="start">
+      <v-col cols="12" md="9" tag="section" aria-labelledby="articles-heading">
+        <div class="d-flex align-baseline justify-space-between ga-3 mb-4 pb-3 border-b">
+          <h1 id="articles-heading" class="text-h6 font-weight-bold">首頁 / 文章</h1>
+          <span class="text-caption text-text-tertiary">LATEST POSTS</span>
+        </div>
+        <MotionReveal v-for="article in articles" :key="article.id">
+          <v-card tag="article" color="surface" elevation="0" rounded="lg" class="pa-6 mb-3 border">
+            <div class="d-flex align-center justify-space-between ga-3 mb-4">
+              <span class="text-primary text-caption">文章</span>
+              <time class="text-text-tertiary text-caption" :datetime="String(article.createdAt)">{{
+                dayjs(article.createdAt).format("YYYY.MM.DD")
+              }}</time>
+            </div>
+            <h2 class="text-h5 font-weight-bold mb-2 text-wrap">
+              <NuxtLink class="article-link" :to="`/articles/${article.id}`">{{ article.title }}</NuxtLink>
+            </h2>
+            <p v-if="articleSummary(article.content)" class="text-body-2 text-text-tertiary text-wrap">
+              {{ articleSummary(article.content) }}
+            </p>
+            <div class="d-flex align-center justify-space-between ga-3 mt-5 pt-4 border-t">
+              <span class="text-caption text-text-secondary"><span class="text-primary">●</span> SeaotterMS</span>
+              <div class="d-flex justify-end flex-wrap ga-2">
+                <v-chip
+                  v-for="tag in article.tags"
+                  :key="tag.name"
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  :to="`/tags/${encodeURIComponent(tag.name)}`"
+                  >{{ tag.name }}</v-chip
+                >
+              </div>
+            </div>
+          </v-card>
+        </MotionReveal>
+      </v-col>
+      <v-col cols="12" md="3" tag="aside" aria-labelledby="profile-heading">
+        <div class="d-flex align-baseline justify-space-between ga-3 mb-4 pb-3 border-b">
+          <h2 id="profile-heading" class="text-h6 font-weight-bold">個人資料</h2>
+          <span class="text-caption text-text-tertiary">PROFILE</span>
+        </div>
+        <ClientOnly><Profile /></ClientOnly>
+      </v-col>
+    </v-row>
   </div>
 </template>
 
 <style lang="scss" scoped>
-%basic-text-style {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
 .main-block {
   padding: 40px;
 }
@@ -139,29 +145,13 @@ onMounted(() => {
   justify-content: center;
 }
 
-.article-card {
-  border: 2px solid rgb(var(--v-theme-border));
-  border-radius: 20px;
-  cursor: pointer;
-  background-color: var(--v-card-color-1);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+.article-link {
+  color: rgb(var(--v-theme-text-primary));
+  text-decoration: none;
+  overflow-wrap: anywhere;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px var(--v-theme-shadow-light);
+    color: rgb(var(--v-theme-primary));
   }
-}
-
-.article-title {
-  @extend %basic-text-style;
-  font-size: 30px;
-  padding-bottom: 8px;
-}
-
-h1 {
-  font-size: 2rem;
-  font-weight: bold;
 }
 </style>
