@@ -5,9 +5,6 @@ import { errorHandler } from "@/utils/errorHandler";
 import dayjs from "dayjs";
 import MarkdownIt from "markdown-it";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const Typed: any;
-
 const router = useRouter();
 
 const { data, error } = await useFetch<CommonResponse<ArticleQueryResponse[]>, CommonResponse>("articles", {
@@ -40,25 +37,26 @@ if (import.meta.client && error.value) {
     router.push("/message");
   }
 }
-
-onMounted(() => {
-  // eslint-disable-next-line no-undef
-  new Typed(".banner-text", {
-    strings: ["正在嘗試進步，", "學很多怪技術跟做很多小東西。"],
-    typeSpeed: 80,
-    loop: true,
-    showCursor: false,
-  });
-});
 </script>
 
 <template>
   <div class="main-block">
-    <v-card class="banner-card mb-4" :style="{ backgroundImage: 'var(--v-banner-image)' }">
-      <div class="banner-overlay">
-        <div class="banner-text"></div>
-      </div>
-    </v-card>
+    <v-row align="stretch">
+      <v-col cols="12" class="banner-column">
+        <v-card class="banner-card" elevation="0" :style="{ backgroundImage: 'var(--v-banner-image)' }">
+          <div class="banner-overlay">
+            <div>
+              <span class="text-primary text-caption font-weight-bold">SEAOTTERMS / PERSONAL BLOG</span>
+              <p class="banner-text">正在嘗試進步，</p>
+              <p class="text-body-2">學很多怪技術跟做很多小東西。</p>
+            </div>
+          </div>
+        </v-card>
+      </v-col>
+      <v-col cols="12" class="navigation-column">
+        <SiteNavigation class="h-100" />
+      </v-col>
+    </v-row>
 
     <v-row class="mt-12" align="start">
       <v-col cols="12" md="9" tag="section" aria-labelledby="articles-heading">
@@ -113,11 +111,34 @@ onMounted(() => {
   padding: 40px;
 }
 
+.navigation-column {
+  display: none;
+}
+
+@media (min-width: 1441px) {
+  .banner-column {
+    flex: 0 0 75%;
+    max-width: 75%;
+  }
+
+  .navigation-column {
+    display: block;
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+}
+
+@media (max-width: 600px) {
+  .main-block {
+    padding: 20px 8px;
+  }
+}
+
 .banner-card {
-  height: 250px;
-  border: 2px solid rgb(var(--v-theme-border));
-  border-radius: 100px;
-  text-align: center;
+  min-height: 250px;
+  height: 100%;
+  border: 1px solid rgb(var(--v-theme-border));
+  border-radius: 12px;
   background-size: cover;
   background-position: 50% 20%;
   position: relative;
@@ -127,22 +148,17 @@ onMounted(() => {
 .banner-overlay {
   position: absolute;
   inset: 0;
-  border: 2px solid transparent;
-  border-radius: 100px;
   background-color: var(--v-banner-overlay);
   display: flex;
   align-items: center;
-  justify-content: center;
+  padding: 40px;
 }
 
 .banner-text {
   font-family: "ChenYuluoyan-Thin";
-  margin: 50px;
-  font-size: 60px;
+  margin: 12px 0;
+  font-size: clamp(36px, 4vw, 56px);
   word-wrap: break-word;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .article-link {

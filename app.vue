@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
+import { useMediaQuery } from "@vueuse/core";
+import { useLoginModal } from "@/stores/useLoginModal";
 
 const siteUrl = useRuntimeConfig().public.siteUrl as string;
+const route = useRoute();
+const isSmallScreen = useMediaQuery("(max-width: 1440px)");
+const { showLoginModal } = useLoginModal();
 
 useSeoMeta({
   ogImage: () => `${siteUrl}background.png`,
@@ -23,7 +28,8 @@ onMounted(async () => {
     <div id="loader">
       <div class="loader"></div>
     </div>
-    <NavBar />
+    <NavBar v-if="route.path !== '/' || isSmallScreen" />
+    <LoginModal v-model="showLoginModal" />
     <AppSnackbar />
     <AppConfirmDialog />
     <v-main>
@@ -45,8 +51,6 @@ onMounted(async () => {
 html,
 body {
   min-height: 100vh;
-  min-width: 768px;
-
   background-color: rgb(var(--v-theme-background));
   background-size: 400% 400%;
 }
