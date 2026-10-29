@@ -1,3 +1,52 @@
+<script setup lang="ts">
+type TypedInstance = { destroy: () => void };
+type TypedConstructor = new (
+  element: HTMLElement,
+  options: {
+    strings: string[];
+    typeSpeed: number;
+    backSpeed: number;
+    backDelay: number;
+    loop: boolean;
+    showCursor: boolean;
+    smartBackspace: boolean;
+  },
+) => TypedInstance;
+
+const bannerText = ref<HTMLElement | null>(null);
+let typed: TypedInstance | undefined;
+let script: HTMLScriptElement | null = null;
+
+const startTyping = () => {
+  const Typed = (window as Window & { Typed?: TypedConstructor }).Typed;
+  if (!Typed || !bannerText.value || typed || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  bannerText.value.textContent = "";
+  typed = new Typed(bannerText.value, {
+    strings: ["正在嘗試進步，", "學很多怪技術跟做很多小東西。"],
+    typeSpeed: 80,
+    backSpeed: 40,
+    backDelay: 1500,
+    loop: true,
+    showCursor: false,
+    smartBackspace: false,
+  });
+};
+
+onMounted(() => {
+  startTyping();
+  if (!typed) {
+    script = document.querySelector<HTMLScriptElement>('script[src*="typed.js@2.0.12"]');
+    script?.addEventListener("load", startTyping);
+  }
+});
+
+onBeforeUnmount(() => {
+  script?.removeEventListener("load", startTyping);
+  typed?.destroy();
+});
+</script>
+
 <template>
   <div class="main-block">
     <v-row align="stretch">
@@ -6,8 +55,8 @@
           <div class="banner-overlay">
             <div>
               <span class="text-primary text-caption font-weight-bold">SEAOTTERMS / PERSONAL BLOG</span>
-              <p class="banner-text">正在嘗試進步，</p>
-              <p class="text-body-2">學很多怪技術跟做很多小東西。</p>
+              <p ref="bannerText" class="banner-text"></p>
+              <p class="banner-subtitle text-body-2">個人部落格以及個人工具使用</p>
             </div>
           </div>
         </v-card>
@@ -76,7 +125,7 @@
   inset: 0;
   background-color: var(--v-banner-overlay);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   padding: 40px;
 }
 
@@ -84,6 +133,18 @@
   font-family: "ChenYuluoyan-Thin";
   margin: 12px 0;
   font-size: clamp(36px, 4vw, 56px);
+  line-height: 1.2;
+  min-height: 1.2em;
   word-wrap: break-word;
+}
+
+.banner-subtitle {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .banner-text {
+    min-height: 2.4em;
+  }
 }
 </style>

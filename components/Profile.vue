@@ -20,11 +20,11 @@ const { user } = storeToRefs(useUserStore());
         color="primary"
         variant="tonal"
         rounded="lg"
-        prepend-icon="mdi-github"
         block
         class="profile-project"
       >
-        這是專案本身:pepega:
+        <v-icon icon="mdi-github" size="small" class="project-icon" />
+        <span class="project-label">這是專案本身:pepega:</span>
       </v-btn>
       <div class="d-flex justify-center ga-3">
         <v-btn
@@ -87,7 +87,29 @@ const { user } = storeToRefs(useUserStore());
   height: auto;
   min-height: 44px;
   padding: 10px;
-  white-space: normal;
+  max-width: 100%;
+  letter-spacing: normal;
+  text-transform: none;
+
+  :deep(.v-btn__content) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+  }
+}
+
+.project-icon {
+  flex-shrink: 0;
+}
+
+.project-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -73,13 +73,29 @@ const logout = () => {
         <v-icon>{{ isDark ? "mdi-weather-sunny" : "mdi-weather-night" }}</v-icon>
       </v-btn>
       <ThemeVersionSwitch />
-      <v-btn v-if="!isAuthenticated" color="primary" class="flex-grow-1" @click="openLoginModal">登入</v-btn>
-      <v-btn v-else color="primary" class="flex-grow-1" @click="logout">登出</v-btn>
+      <v-btn v-if="!isAuthenticated" color="primary" rounded="pill" class="auth-button flex-grow-1" @click="openLoginModal">登入</v-btn>
+      <v-btn v-else color="primary" rounded="pill" class="auth-button flex-grow-1" @click="logout">登出</v-btn>
     </div>
   </v-card>
 </template>
 
 <style lang="scss" scoped>
+.auth-button {
+  box-shadow: 0 4px 14px rgba(var(--v-theme-primary), 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: box-shadow 180ms ease, transform 180ms ease;
+
+  &:hover {
+    box-shadow: 0 6px 18px rgba(var(--v-theme-primary), 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-button {
+    transition: none;
+  }
+}
+
 .nav-link {
   height: auto;
   min-height: 40px;

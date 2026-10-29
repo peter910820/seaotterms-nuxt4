@@ -302,10 +302,12 @@ watch(
   background: rgb(var(--v-theme-info));
   color: rgb(var(--v-theme-surface));
   font-weight: 650;
-  transition: filter 160ms ease;
+  box-shadow: 0 4px 14px rgba(var(--v-theme-info), 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: filter 160ms ease, box-shadow 160ms ease;
 
   &:hover {
     filter: brightness(1.06);
+    box-shadow: 0 6px 18px rgba(var(--v-theme-info), 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
 }
 
@@ -385,6 +387,7 @@ watch(
 
 .menu-item-danger {
   color: rgb(var(--v-theme-error));
+  border-radius: 999px;
 
   .menu-item-icon {
     color: rgb(var(--v-theme-error));
@@ -394,6 +397,7 @@ watch(
   &:hover {
     color: rgb(var(--v-theme-error));
     background: color-mix(in srgb, rgb(var(--v-theme-error)) 10%, transparent);
+    box-shadow: 0 4px 14px rgba(var(--v-theme-error), 0.15);
   }
 }
 
@@ -447,6 +451,11 @@ watch(
 
 .drawer-link-danger {
   color: rgb(var(--v-theme-error));
+  border-radius: 999px;
+
+  &:hover {
+    box-shadow: 0 4px 14px rgba(var(--v-theme-error), 0.15);
+  }
 
   .menu-item-icon {
     color: rgb(var(--v-theme-error));
