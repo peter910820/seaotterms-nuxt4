@@ -1,29 +1,22 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
-import { userInfoHandler } from "@/utils/userInfoHandler";
 import { messageStorage } from "@/utils/messageHandler";
-import { errorHandler } from "@/utils/errorHandler";
 
-import { useTodoTopicStore, useSystemTodoStore } from "@/stores/useTodoStore";
+import { useTodoTopicStore } from "@/stores/useTodoStore";
 
-import type { CommonResponse, TodoTopicQueryResponse, SystemTodoQueryResponse } from "@/types/response";
+import type { CommonResponse, TodoTopicQueryResponse } from "@/types/response";
 
 const router = useRouter();
 const todoTopicStore = useTodoTopicStore();
-const systemTodoStore = useSystemTodoStore();
-const filterText = ref<string>("");
-const filterValue = ref<string>("");
-const filterStatus = ref<string>("");
+const filterText = defineModel<string | null>("text", { default: "" });
+const filterValue = defineModel<string | null>("site", { default: null });
+const filterStatus = defineModel<string | null>("status", { default: null });
 
-const { data, error } = await useFetch<CommonResponse<TodoTopicQueryResponse[]>, CommonResponse>(
-  `todo-topics/system`,
-  {
-    baseURL: useRuntimeConfig().public.apiUrl,
-    credentials: "include",
-  },
-);
+const { data, error } = await useFetch<CommonResponse<TodoTopicQueryResponse[]>, CommonResponse>(`todo-topics/system`, {
+  baseURL: useRuntimeConfig().public.apiUrl,
+  credentials: "include",
+});
 
 const { todoTopic: todoTopics } = storeToRefs(todoTopicStore);
 todoTopicStore.set((data.value?.data ?? []) as TodoTopicQueryResponse[]);
@@ -34,23 +27,6 @@ const statusOptions = [
   { label: "擱置中", value: "2" },
   { label: "已完成", value: "3" },
 ];
-
-const startFilter = async () => {
-  try {
-    const response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(
-      `system-todos?system_name=${filterValue.value}&status=${filterStatus.value}`,
-      {
-        baseURL: useRuntimeConfig().public.apiUrl,
-        method: "GET",
-        credentials: "include",
-      },
-    );
-    userInfoHandler(response.userInfo);
-    systemTodoStore.set(response.data);
-  } catch (error) {
-    errorHandler(error);
-  }
-};
 
 if (import.meta.client && error.value) {
   if (error.value.statusCode === 500) {
@@ -69,55 +45,50 @@ if (import.meta.client && error.value) {
     <v-card class="filter-block mb-4">
       <v-card-text class="pa-4">
         <v-row align="center" no-gutters>
-        <v-col cols="12" sm="1" class="text-center text-sm-left mb-2 mb-sm-0">
-          <span class="filter-label">篩選器</span>
-        </v-col>
-        <v-col cols="12" sm="3" class="mb-2 mb-sm-0 px-1">
-          <v-text-field
-            v-model="filterText"
-            label="篩選文字"
-            prepend-inner-icon="mdi-text-box"
-            variant="outlined"
-            density="compact"
-            hide-details
-          />
-        </v-col>
-        <v-col cols="12" sm="3" class="mb-2 mb-sm-0 px-1">
-          <v-select
-            v-model="filterValue"
-            :items="todoTopics"
-            item-title="topicName"
-            item-value="topicName"
-            label="站點篩選"
-            placeholder="請選擇站點"
-            prepend-inner-icon="mdi-office-building"
-            variant="outlined"
-            density="compact"
-            hide-details
-            clearable
-          />
-        </v-col>
-        <v-col cols="12" sm="3" class="mb-2 mb-sm-0 px-1">
-          <v-select
-            v-model="filterStatus"
-            :items="statusOptions"
-            item-title="label"
-            item-value="value"
-            label="狀態篩選"
-            placeholder="選擇狀態"
-            prepend-inner-icon="mdi-signal-cellular-3"
-            variant="outlined"
-            density="compact"
-            hide-details
-            clearable
-          />
-        </v-col>
-        <v-col cols="12" sm="2" class="text-center px-1">
-          <v-btn color="primary" variant="elevated" @click="startFilter" block>
-            篩選
-            <v-icon end>mdi-send</v-icon>
-          </v-btn>
-        </v-col>
+          <v-col cols="12" class="mb-3">
+            <span class="filter-label">篩選器</span>
+          </v-col>
+          <v-col cols="12" md="4" class="mb-2 mb-md-0 px-1">
+            <v-text-field
+              v-model="filterText"
+              label="搜尋標題、站台或備註"
+              prepend-inner-icon="mdi-text-box"
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="6" md="4" class="mb-2 mb-md-0 px-1">
+            <v-select
+              v-model="filterValue"
+              :items="todoTopics"
+              item-title="topicName"
+              item-value="topicName"
+              label="站點篩選"
+              placeholder="請選擇站點"
+              prepend-inner-icon="mdi-office-building"
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="6" md="4" class="mb-2 mb-md-0 px-1">
+            <v-select
+              v-model="filterStatus"
+              :items="statusOptions"
+              item-title="label"
+              item-value="value"
+              label="狀態篩選"
+              placeholder="選擇狀態"
+              prepend-inner-icon="mdi-signal-cellular-3"
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+            />
+          </v-col>
         </v-row>
       </v-card-text>
     </v-card>
@@ -126,18 +97,9 @@ if (import.meta.client && error.value) {
 
 <style lang="scss" scoped>
 .filter-block {
-  border: 2px solid rgb(var(--v-theme-border));
-  border-radius: 20px;
-  background-color: rgb(var(--v-theme-background));
-  cursor: pointer;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-
-  &:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 8px 16px var(--v-theme-shadow-medium);
-  }
+  border: 1px solid rgb(var(--v-theme-border));
+  border-radius: 12px;
+  background-color: rgb(var(--v-theme-surface));
 }
 
 .filter-label {
@@ -167,11 +129,6 @@ if (import.meta.client && error.value) {
 :deep(.v-text-field .v-field__field),
 :deep(.v-select .v-field__field) {
   min-height: 40px;
-}
-
-:deep(.v-btn--variant-elevated) {
-  background-color: rgb(var(--v-theme-primary));
-  color: white;
 }
 
 @media (max-width: 600px) {

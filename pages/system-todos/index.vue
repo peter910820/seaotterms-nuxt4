@@ -88,9 +88,29 @@ const { data, error } = await useFetch<CommonResponse<SystemTodoQueryResponse[]>
   credentials: "include",
 });
 
-systemTodoStore.set(data.value?.data as SystemTodoQueryResponse[]);
+systemTodoStore.set(data.value?.data ?? []);
 
-const systemTodos = computed(() => systemTodo.value);
+const filterText = ref<string | null>("");
+const filterSite = ref<string | null>(null);
+const filterStatus = ref<string | null>(null);
+const systemTodos = computed(() => {
+  const query = (filterText.value ?? "").trim().toLocaleLowerCase();
+  return systemTodo.value.filter((item) => {
+    const matchesText =
+      !query ||
+      [item.title, item.systemName, item.detail].some((value) => (value ?? "").toLocaleLowerCase().includes(query));
+    const matchesSite = !filterSite.value || item.systemName === filterSite.value;
+    const matchesStatus =
+      filterStatus.value == null || filterStatus.value === "" || String(item.status) === filterStatus.value;
+    return matchesText && matchesSite && matchesStatus;
+  });
+});
+const statuses = [
+  { value: 0, label: "未開始", color: "error" },
+  { value: 1, label: "進行中", color: "info" },
+  { value: 2, label: "擱置中", color: "tagColor" },
+  { value: 3, label: "已完成", color: "success" },
+];
 
 if (import.meta.client && error.value) {
   if (error.value.statusCode === 500) {
@@ -152,13 +172,13 @@ const changeStatus = async (id: number, status: number) => {
           updatedName: user.value.username,
         },
       });
-      let response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos?id=${id}`, {
+      const detailResponse = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos?id=${id}`, {
         baseURL: useRuntimeConfig().public.apiUrl,
         method: "GET",
         credentials: "include",
       });
-      systemTodoStore.setSingle(response.data);
-      response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos`, {
+      systemTodoStore.setSingle(detailResponse.data);
+      const response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos`, {
         baseURL: useRuntimeConfig().public.apiUrl,
         method: "GET",
         credentials: "include",
@@ -184,19 +204,14 @@ const deleteTodo = async (id: number) => {
         method: "DELETE",
         credentials: "include",
       });
-      let response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos?id=${id}`, {
+      const response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos`, {
         baseURL: useRuntimeConfig().public.apiUrl,
         method: "GET",
         credentials: "include",
       });
-      systemTodoStore.setSingle(response.data);
-      response = await $fetch<CommonResponse<SystemTodoQueryResponse[]>>(`system-todos`, {
-        baseURL: useRuntimeConfig().public.apiUrl,
-        method: "GET",
-        credentials: "include",
-      });
-
       systemTodoStore.set(response.data);
+      userInfoHandler(response.userInfo);
+      closeModal();
     } catch (error) {
       errorHandler(error);
     }
@@ -205,59 +220,75 @@ const deleteTodo = async (id: number) => {
 </script>
 
 <template>
-  <v-container class="main-block">
-    <div class="d-flex align-center justify-space-between mb-4">
-      <h1>系統更新待辦</h1>
-      <div v-if="user?.management" class="d-flex flex-wrap ga-4">
-        <v-btn class="button-simple" variant="flat" @click="openCreateSiteModal">建立系統站台</v-btn>
-        <v-btn :to="'/system-todos/create'" class="button-simple" variant="flat">點我新增</v-btn>
-      </div>
+  <section aria-labelledby="system-todos-heading">
+    <div class="d-flex align-baseline justify-space-between ga-3 mb-4 pb-3 border-b">
+      <h1 id="system-todos-heading" class="text-h6 font-weight-bold">系統更新待辦</h1>
+      <span class="text-caption text-text-tertiary">SYSTEM UPDATES</span>
     </div>
 
-    <FilterBlock />
+    <div v-if="user?.management" class="d-flex flex-wrap ga-2 mb-4">
+      <v-btn color="primary" variant="tonal" prepend-icon="mdi-folder-plus-outline" @click="openCreateSiteModal">
+        建立系統站台
+      </v-btn>
+      <v-btn to="/system-todos/create" color="primary" prepend-icon="mdi-plus">新增待辦</v-btn>
+    </div>
 
-    <MotionReveal
-      v-for="systemTodo in systemTodos"
-      :key="systemTodo.id"
+    <FilterBlock v-model:text="filterText" v-model:site="filterSite" v-model:status="filterStatus" />
+
+    <div class="d-flex align-center justify-space-between ga-3 mb-3">
+      <h2 class="text-subtitle-1 font-weight-bold">更新項目</h2>
+      <span class="text-caption text-text-tertiary">共 {{ systemTodos.length }} 項</span>
+    </div>
+
+    <v-card
+      v-if="!systemTodos.length"
+      color="surface"
+      elevation="0"
+      rounded="lg"
+      class="border pa-8 text-center text-text-tertiary"
     >
-      <v-card
-        class="todo-card mb-3 floatup-div"
-        :class="{
-          'urgency-high': systemTodo.urgency === 1,
-          'urgency-urgent': systemTodo.urgency === 2,
-        }"
-      >
-        <v-card-text class="pa-3">
-          <v-row no-gutters align="center" class="todo-row">
-          <!-- Title -->
-          <v-col cols="6" class="todo-title"> [{{ systemTodo.systemName }}]{{ systemTodo.title }} </v-col>
+      目前沒有符合條件的更新待辦。
+    </v-card>
 
-          <!-- Deadline -->
-          <v-col cols="3" class="todo-date text-center">
-            <span v-if="systemTodo.deadline">{{ new Date(systemTodo.deadline).toISOString().slice(0, 10) }}</span>
-          </v-col>
-
-          <!-- Status -->
-          <v-col cols="2" class="todo-status text-right">
-            <v-chip v-if="systemTodo.status === 0" color="error" size="small" variant="flat"> 未開始 </v-chip>
-            <v-chip v-else-if="systemTodo.status === 1" color="info" size="small" variant="flat"> 進行中 </v-chip>
-            <v-chip v-else-if="systemTodo.status === 2" color="tagColor" size="small" variant="flat"> 擱置中 </v-chip>
-            <v-chip v-else-if="systemTodo.status === 3" color="success" size="small" variant="flat"> 已完成 </v-chip>
-            <v-chip v-else size="small" variant="flat">?</v-chip>
-          </v-col>
-
-          <!-- Open Modal Button -->
-          <v-col cols="1" class="text-center button-col">
-            <v-btn class="button-open-modal" size="small" variant="flat" @click="openModal(systemTodo.id)">
-              <v-icon>mdi-plus</v-icon>
-            </v-btn>
-          </v-col>
-          </v-row>
-        </v-card-text>
+    <MotionReveal v-for="systemTodo in systemTodos" :key="systemTodo.id">
+      <v-card tag="article" color="surface" elevation="0" rounded="lg" class="border pa-5 mb-3">
+        <div class="d-flex align-start justify-space-between flex-wrap ga-3">
+          <div class="system-todo-details">
+            <div class="text-caption text-primary mb-1">{{ systemTodo.systemName }}</div>
+            <h3 class="text-subtitle-1 font-weight-bold system-todo-title">{{ systemTodo.title }}</h3>
+            <div v-if="systemTodo.deadline" class="text-caption text-text-tertiary mt-2">
+              <v-icon icon="mdi-calendar-outline" size="small" class="mr-1" />
+              截止：{{ new Date(systemTodo.deadline).toISOString().slice(0, 10) }}
+            </div>
+          </div>
+          <div class="d-flex align-center flex-wrap ga-2">
+            <v-chip v-if="systemTodo.urgency === 1" color="warning" size="small" variant="tonal">高優先度</v-chip>
+            <v-chip v-else-if="systemTodo.urgency === 2" color="error" size="small" variant="tonal">緊急</v-chip>
+            <v-chip
+              v-if="statuses.find((status) => status.value === systemTodo.status)"
+              :color="statuses.find((status) => status.value === systemTodo.status)?.color"
+              size="small"
+              variant="tonal"
+            >
+              {{ statuses.find((status) => status.value === systemTodo.status)?.label }}
+            </v-chip>
+            <v-chip v-else size="small" variant="tonal">未知狀態</v-chip>
+          </div>
+        </div>
+        <v-divider class="my-4" />
+        <div class="d-flex justify-end">
+          <v-btn
+            color="primary"
+            variant="tonal"
+            size="small"
+            append-icon="mdi-arrow-right"
+            @click="openModal(systemTodo.id)"
+            >查看詳情</v-btn
+          >
+        </div>
       </v-card>
     </MotionReveal>
-  </v-container>
-
+  </section>
   <!-- Vuetify Dialog -->
   <v-dialog v-model="modalVisible" max-width="75vw" scrollable>
     <v-card v-if="systemTodoSingle !== null" class="modal-content">
@@ -377,6 +408,14 @@ const deleteTodo = async (id: number) => {
 </template>
 
 <style lang="scss" scoped>
+.system-todo-details {
+  min-width: 0;
+}
+
+.system-todo-title {
+  overflow-wrap: anywhere;
+}
+
 .main-block {
   padding: 40px;
 }
@@ -460,16 +499,7 @@ const deleteTodo = async (id: number) => {
   word-wrap: break-word;
 }
 
-h1 {
-  font-size: 2rem;
-  font-weight: bold;
-}
-
 @media (max-width: 960px) {
-  h1 {
-    font-size: 1.75rem;
-  }
-
   .todo-title,
   .todo-date,
   .todo-status {
@@ -482,10 +512,6 @@ h1 {
 }
 
 @media (max-width: 768px) {
-  h1 {
-    font-size: 1.5rem;
-  }
-
   .todo-title,
   .todo-date,
   .todo-status {
@@ -498,10 +524,6 @@ h1 {
 }
 
 @media (max-width: 600px) {
-  h1 {
-    font-size: 1.25rem;
-  }
-
   .todo-title,
   .todo-date,
   .todo-status {

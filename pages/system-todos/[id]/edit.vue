@@ -113,7 +113,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <v-container class="main-block">
+  <v-container fluid class="pa-0">
     <h1 class="page-title mb-6">更新系統代辦</h1>
     <MotionReveal>
       <v-card class="form-card" color="background">

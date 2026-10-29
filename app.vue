@@ -6,7 +6,13 @@ import { useLoginModal } from "@/stores/useLoginModal";
 const siteUrl = useRuntimeConfig().public.siteUrl as string;
 const route = useRoute();
 const usesHomeShell = computed(
-  () => route.path === "/" || route.path === "/self/galgame" || route.path.startsWith("/articles/"),
+  () =>
+    route.path === "/" ||
+    route.path === "/self/galgame" ||
+    route.path === "/todos" ||
+    route.path === "/system-todos" ||
+    route.path.startsWith("/system-todos/") ||
+    route.path.startsWith("/articles/"),
 );
 const isSmallScreen = useMediaQuery("(max-width: 1440px)");
 const { showLoginModal } = useLoginModal();

@@ -93,6 +93,7 @@ const logout = () => {
     min-width: 0;
     width: 100%;
     justify-content: flex-start;
+    white-space: normal;
   }
 }
 
