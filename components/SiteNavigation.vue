@@ -13,7 +13,7 @@ const navigationItems: { to: string; icon: string; title: string; requiresAuthen
   { to: "/", icon: "mdi-home", title: "首頁" },
   { to: "/system-todos", icon: "mdi-calendar-clock", title: "系統更新待辦" },
   { to: "/todos", icon: "mdi-format-list-checks", title: "TodoList" },
-  { to: "/self-galgames", icon: "mdi-dice-multiple", title: "Galgame紀錄" },
+  { to: "/self/galgame", icon: "mdi-dice-multiple", title: "Galgame紀錄" },
   { to: "/articles/create", icon: "mdi-pencil", title: "建立文章" },
   { to: "/user-maintain", icon: "mdi-account-cog", title: "使用者帳號維護", requiresAuthentication: true },
 ];

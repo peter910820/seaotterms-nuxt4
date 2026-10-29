@@ -5,6 +5,9 @@ import { useLoginModal } from "@/stores/useLoginModal";
 
 const siteUrl = useRuntimeConfig().public.siteUrl as string;
 const route = useRoute();
+const usesHomeShell = computed(
+  () => route.path === "/" || route.path === "/self/galgame" || route.path.startsWith("/articles/"),
+);
 const isSmallScreen = useMediaQuery("(max-width: 1440px)");
 const { showLoginModal } = useLoginModal();
 
@@ -28,7 +31,7 @@ onMounted(async () => {
     <div id="loader">
       <div class="loader"></div>
     </div>
-    <NavBar v-if="route.path !== '/' || isSmallScreen" />
+    <NavBar v-if="!usesHomeShell || isSmallScreen" />
     <LoginModal v-model="showLoginModal" />
     <AppSnackbar />
     <AppConfirmDialog />
@@ -37,7 +40,8 @@ onMounted(async () => {
         <v-row class="page-row">
           <v-col cols="1"></v-col>
           <v-col cols="10" class="page-content">
-            <NuxtPage />
+            <HomeShell v-if="usesHomeShell"><NuxtPage /></HomeShell>
+            <NuxtPage v-else />
           </v-col>
           <v-col cols="1"></v-col>
         </v-row>
