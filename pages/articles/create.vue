@@ -104,7 +104,7 @@ const renderedMarkdown = computed(() => renderMarkdown(form.value.content));
 </script>
 
 <template>
-  <v-container class="main-block">
+  <v-container fluid class="pa-0">
     <h1 class="page-title mb-6">建立文章</h1>
     <MotionReveal>
       <v-card class="form-card" color="background">
