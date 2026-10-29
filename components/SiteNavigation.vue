@@ -5,7 +5,7 @@ import { useLoginModal } from "@/stores/useLoginModal";
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
-const { isDark, toggleTheme } = useAppTheme();
+const { isDark, nextThemeLabel, toggleTheme } = useAppTheme();
 const { openLoginModal } = useLoginModal();
 const route = useRoute();
 
@@ -62,10 +62,17 @@ const logout = () => {
 
     <v-divider class="my-3" />
     <div class="d-flex flex-wrap ga-2">
-      <v-btn variant="outlined" class="flex-grow-1" @click="toggleTheme">
+      <v-btn
+        variant="outlined"
+        class="flex-grow-1"
+        :aria-label="`切換到${nextThemeLabel}`"
+        :title="`切換到${nextThemeLabel}`"
+        @click="toggleTheme"
+      >
         <v-icon start>{{ isDark ? "mdi-weather-sunny" : "mdi-weather-night" }}</v-icon>
         主題切換
       </v-btn>
+      <ThemeVersionSwitch />
       <v-btn v-if="!isAuthenticated" color="primary" class="flex-grow-1" @click="openLoginModal">登入</v-btn>
       <v-btn v-else color="primary" class="flex-grow-1" @click="logout">登出</v-btn>
     </div>
