@@ -21,66 +21,80 @@ if (import.meta.client && error.value) {
     router.push("/message");
   }
 }
-
-const link = (tagName: string) => {
-  router.push(`/tags/${tagName}`);
-};
 </script>
 
 <template>
-  <div class="main-block">
-    <v-container>
-      <h1 class="mb-4">標籤一覽</h1>
-
-      <v-row>
-        <v-col v-for="Tag in tags" :key="Tag.name" cols="12" sm="4" md="4">
-          <v-card class="tag-card floatup-div" @click="link(Tag.name)">
-            <v-card-text class="tag-text">
-              {{ Tag.name }}
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-container>
-  </div>
+  <section aria-labelledby="tags-heading">
+    <div class="d-flex align-baseline justify-space-between ga-3 mb-4 pb-3 border-b">
+      <h1 id="tags-heading" class="text-h6 font-weight-bold">標籤一覽</h1>
+      <span class="text-caption text-text-tertiary">TAGS</span>
+    </div>
+    <v-card color="surface" elevation="0" rounded="lg" class="tag-intro border pa-6 mb-5">
+      <div class="d-flex align-center flex-wrap ga-4">
+        <v-avatar color="primary" variant="tonal" rounded="lg" size="48"
+          ><v-icon icon="mdi-tag-multiple-outline"
+        /></v-avatar>
+        <div class="flex-grow-1">
+          <h2 class="text-h6 font-weight-bold">探索文章標籤</h2>
+          <p class="text-body-2 text-text-tertiary">選擇感興趣的主題，瀏覽相關文章。</p>
+        </div>
+        <v-chip color="primary" variant="tonal" size="small">{{ tags.length }} 個標籤</v-chip>
+      </div>
+    </v-card>
+    <v-card
+      v-if="!tags.length && !error"
+      color="surface"
+      elevation="0"
+      rounded="lg"
+      class="border pa-8 text-center text-text-tertiary"
+    >
+      目前沒有標籤。
+    </v-card>
+    <v-row v-else>
+      <v-col v-for="tag in tags" :key="tag.name" cols="12" sm="6" lg="4">
+        <v-card
+          :to="`/tags/${encodeURIComponent(tag.name)}`"
+          color="surface"
+          elevation="0"
+          rounded="lg"
+          class="tag-card border pa-5 h-100"
+        >
+          <div class="d-flex align-center ga-3">
+            <v-avatar color="primary" variant="tonal" rounded="lg" size="40"
+              ><v-icon icon="mdi-pound" size="20"
+            /></v-avatar>
+            <span class="tag-name font-weight-bold text-text-primary">{{ tag.name }}</span>
+            <v-spacer />
+            <v-icon icon="mdi-arrow-top-right" color="primary" size="20" />
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+  </section>
 </template>
 
 <style lang="scss" scoped>
-.main-block {
-  padding: 40px;
-}
-
 .tag-card {
-  min-height: 100px;
-  background-color: rgb(var(--v-theme-background));
-  border: 2px solid rgb(var(--v-theme-border));
-  border-radius: 50px;
-  cursor: pointer;
   transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-color: rgb(var(--v-theme-primary)) !important;
+    box-shadow: 0 8px 20px var(--v-theme-shadow-light) !important;
   }
 }
 
-.tag-text {
-  min-height: 100px;
-  font-size: 24px;
-  text-align: center;
-  padding: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.tag-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-h1 {
-  font-size: 2rem;
-  font-weight: bold;
+@media (prefers-reduced-motion: reduce) {
+  .tag-card {
+    transition: none;
+  }
 }
 </style>
