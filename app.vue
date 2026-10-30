@@ -125,10 +125,6 @@ body {
   background-size: 400% 400%;
 }
 
-.main-block {
-  padding: 40px;
-}
-
 .loading-hidden {
   display: none !important;
 }

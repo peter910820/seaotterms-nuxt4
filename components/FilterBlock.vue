@@ -40,7 +40,6 @@ if (import.meta.client && error.value) {
 </script>
 
 <template>
-  <!-- 嵌入其他頁面，所以不用寫main-block -->
   <MotionReveal>
     <v-card class="filter-block mb-4">
       <v-card-text class="pa-4">

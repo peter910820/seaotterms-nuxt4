@@ -416,10 +416,6 @@ const deleteTodo = async (id: number) => {
   overflow-wrap: anywhere;
 }
 
-.main-block {
-  padding: 40px;
-}
-
 .todo-card {
   border: 2px solid rgb(var(--v-theme-border));
   border-radius: 20px;
