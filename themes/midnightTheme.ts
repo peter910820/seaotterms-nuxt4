@@ -58,7 +58,7 @@ export const midnightTheme: ThemeDefinition = {
     "text-red": "#FF9AA5",
     "text-blue": "#8BC8E8",
     "loader-color": "#70C2CB",
-    "progress-color": "#F3C184",
+    "progress-color": "#A8BFFF",
     "code-bg": "#101925",
   },
   variables: {

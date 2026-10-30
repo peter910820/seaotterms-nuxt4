@@ -58,7 +58,7 @@ export const daylightTheme: ThemeDefinition = {
     "text-red": "#BA3547",
     "text-blue": "#286A91",
     "loader-color": "#328D9E",
-    "progress-color": "#A55E19",
+    "progress-color": "#425EAA",
     "code-bg": "#202B3D",
   },
   variables: {
