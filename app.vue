@@ -11,6 +11,7 @@ const usesHomeShell = computed(
     route.path === "/self/galgame" ||
     route.path === "/todos" ||
     route.path === "/user-maintain" ||
+    route.path === "/message" ||
     route.path === "/tags" ||
     route.path.startsWith("/tags/") ||
     route.path === "/system-todos" ||
