@@ -13,6 +13,7 @@ const usesHomeShell = computed(
     route.path === "/user-maintain" ||
     route.path === "/register" ||
     route.path === "/message" ||
+    route.matched.some((record) => record.path.includes(":pathMatch")) ||
     route.path === "/tags" ||
     route.path.startsWith("/tags/") ||
     route.path === "/system-todos" ||
