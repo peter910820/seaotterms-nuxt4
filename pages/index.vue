@@ -16,11 +16,6 @@ const articles = computed(() => (data.value?.data ?? []) as ArticleQueryResponse
 const page = ref(1);
 const itemsPerPage = 10;
 const pageCount = computed(() => Math.ceil(articles.value.length / itemsPerPage));
-const visibleArticles = computed(() => {
-  const start = (page.value - 1) * itemsPerPage;
-  return articles.value.slice(start, start + itemsPerPage);
-});
-
 watch(pageCount, (count) => {
   page.value = Math.min(page.value, Math.max(1, count));
 });
@@ -39,6 +34,13 @@ const articleSummary = (content: string) => {
     .trim();
   return text.length > 120 ? `${text.slice(0, 120)}…` : text;
 };
+const visibleArticles = computed(() => {
+  const start = (page.value - 1) * itemsPerPage;
+  return articles.value.slice(start, start + itemsPerPage).map((article) => ({
+    ...article,
+    summary: articleSummary(article.content),
+  }));
+});
 
 if (import.meta.client && error.value) {
   if (error.value.statusCode === 500) {
@@ -58,7 +60,7 @@ if (import.meta.client && error.value) {
       <span class="text-caption text-text-tertiary">LATEST POSTS</span>
     </div>
     <MotionReveal v-for="article in visibleArticles" :key="article.id">
-      <v-card tag="article" color="surface" elevation="0" rounded="lg" class="pa-6 mb-3 border">
+      <v-card tag="article" color="surface" elevation="0" rounded="lg" class="article-card pa-6 mb-3 border">
         <div class="d-flex align-center justify-space-between ga-3 mb-4">
           <span class="text-primary text-caption">文章</span>
           <time class="text-text-tertiary text-caption" :datetime="String(article.createdAt)">{{
@@ -68,8 +70,8 @@ if (import.meta.client && error.value) {
         <h2 class="text-h5 font-weight-bold mb-2 text-wrap">
           <NuxtLink class="article-link" :to="`/articles/${article.id}`">{{ article.title }}</NuxtLink>
         </h2>
-        <p v-if="articleSummary(article.content)" class="text-body-2 text-text-tertiary text-wrap">
-          {{ articleSummary(article.content) }}
+        <p v-if="article.summary" class="text-body-2 text-text-tertiary text-wrap">
+          {{ article.summary }}
         </p>
         <div class="d-flex align-center justify-space-between ga-3 mt-5 pt-4 border-t">
           <span class="text-caption text-text-secondary"><span class="text-primary">●</span> SeaotterMS</span>
@@ -80,6 +82,7 @@ if (import.meta.client && error.value) {
               size="small"
               color="primary"
               variant="outlined"
+              class="article-tag"
               :to="`/tags/${encodeURIComponent(tag.name)}`"
               >{{ tag.name }}</v-chip
             >
@@ -99,13 +102,44 @@ if (import.meta.client && error.value) {
 </template>
 
 <style lang="scss" scoped>
+.article-card {
+  position: relative;
+  transition:
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+
+  &:hover,
+  &:focus-within {
+    border-color: rgb(var(--v-theme-primary)) !important;
+    box-shadow: 0 8px 24px rgba(var(--v-theme-primary), 0.18) !important;
+  }
+}
+
 .article-link {
   color: rgb(var(--v-theme-text-primary));
   text-decoration: none;
   overflow-wrap: anywhere;
 
+  &::after {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    content: "";
+  }
+
   &:hover {
     color: rgb(var(--v-theme-primary));
+  }
+}
+
+.article-tag {
+  position: relative;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-card {
+    transition: none;
   }
 }
 </style>
