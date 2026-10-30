@@ -13,6 +13,18 @@ const { data, error } = await useFetch<CommonResponse<ArticleQueryResponse[]>, C
 });
 
 const articles = computed(() => (data.value?.data ?? []) as ArticleQueryResponse[]);
+const page = ref(1);
+const itemsPerPage = 10;
+const pageCount = computed(() => Math.ceil(articles.value.length / itemsPerPage));
+const visibleArticles = computed(() => {
+  const start = (page.value - 1) * itemsPerPage;
+  return articles.value.slice(start, start + itemsPerPage);
+});
+
+watch(pageCount, (count) => {
+  page.value = Math.min(page.value, Math.max(1, count));
+});
+
 const markdown = new MarkdownIt({ html: false });
 const articleSummary = (content: string) => {
   const text = markdown
@@ -45,7 +57,7 @@ if (import.meta.client && error.value) {
       <h1 id="articles-heading" class="text-h6 font-weight-bold">首頁 / 文章</h1>
       <span class="text-caption text-text-tertiary">LATEST POSTS</span>
     </div>
-    <MotionReveal v-for="article in articles" :key="article.id">
+    <MotionReveal v-for="article in visibleArticles" :key="article.id">
       <v-card tag="article" color="surface" elevation="0" rounded="lg" class="pa-6 mb-3 border">
         <div class="d-flex align-center justify-space-between ga-3 mb-4">
           <span class="text-primary text-caption">文章</span>
@@ -75,6 +87,14 @@ if (import.meta.client && error.value) {
         </div>
       </v-card>
     </MotionReveal>
+    <v-pagination
+      v-if="pageCount > 1"
+      v-model="page"
+      :length="pageCount"
+      :total-visible="5"
+      color="primary"
+      class="mt-6"
+    />
   </section>
 </template>
 
