@@ -1,4 +1,9 @@
 <script setup lang="ts">
+definePageMeta({
+  ssr: false,
+  middleware: "require-management",
+});
+
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 
