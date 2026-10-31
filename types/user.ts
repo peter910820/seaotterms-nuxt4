@@ -8,5 +8,6 @@ export interface UserInfo {
   updated_at: Date;
   update_name: string;
   avatar: string;
+  introduction: string;
   dataVersion: number;
 }

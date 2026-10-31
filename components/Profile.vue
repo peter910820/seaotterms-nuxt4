@@ -12,7 +12,9 @@ const { user } = storeToRefs(useUserStore());
         <v-img :src="user.avatar || '/headshot.png'" :alt="user.username || '預設頭像'" cover />
       </v-avatar>
       <h3 class="text-h6 font-weight-bold text-text-primary profile-name">{{ user.username || "使用者未登入" }}</h3>
-      <p class="text-body-2 text-text-tertiary profile-about">一個不知道在幹嘛，每天一直假裝自己有在做事的人。</p>
+      <p v-if="!user.id || user.introduction" class="text-body-2 text-text-tertiary profile-about">
+        {{ user.id ? user.introduction : "登入後使用更多功能" }}
+      </p>
       <v-btn
         href="https://github.com/peter910820/seaotterms-nuxt4"
         target="_blank"
@@ -81,6 +83,7 @@ const { user } = storeToRefs(useUserStore());
 .profile-about {
   line-height: 1.7;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .profile-project {

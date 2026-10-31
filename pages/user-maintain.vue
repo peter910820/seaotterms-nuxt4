@@ -29,6 +29,7 @@ const form = ref<UserUpdateRequest>({
   updated_at: user.value.updated_at,
   update_name: user.value.update_name,
   avatar: user.value.avatar,
+  introduction: user.value.introduction ?? "",
 });
 const allUserData = ref<UserQueryResponse[]>([]);
 
@@ -163,6 +164,16 @@ const changeManagementStatus = async (userId: number) => {
               <v-img :src="form.avatar || '/headshot.png'" :alt="form.username || '個人圖片預覽'" cover />
             </v-avatar>
           </div>
+          <v-textarea
+            v-model="form.introduction"
+            label="自我介紹"
+            prepend-inner-icon="mdi-text-account"
+            variant="outlined"
+            density="comfortable"
+            rows="3"
+            auto-grow
+            class="mb-4"
+          />
           <v-btn color="primary" :loading="loading" type="submit" prepend-icon="mdi-content-save-outline" block>
             確定修改
           </v-btn>

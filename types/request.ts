@@ -62,6 +62,7 @@ export interface UserUpdateRequest {
   updated_at: string | Date;
   update_name: string;
   avatar: string;
+  introduction: string;
 }
 
 export interface TagCreateRequest {
