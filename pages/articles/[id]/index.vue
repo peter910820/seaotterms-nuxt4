@@ -11,6 +11,7 @@ import type { CommonResponse, ArticleQueryResponse } from "@/types/response";
 
 const router = useRouter();
 const route = useRoute();
+const { user } = storeToRefs(useUserStore());
 
 const { data, error, pending } = await useFetch<CommonResponse<ArticleQueryResponse[]>, CommonResponse>(
   () => `articles/${encodeURIComponent(String(route.params.id))}`,
@@ -76,7 +77,20 @@ const formatDateTime = (date: string | Date) => {
     <v-alert v-else-if="!article" type="info" variant="tonal" rounded="lg">找不到這篇文章。</v-alert>
     <template v-else>
       <v-card color="surface" elevation="0" rounded="lg" class="border pa-6 mb-4">
-        <v-btn to="/" variant="text" size="small" prepend-icon="mdi-arrow-left" class="mb-4">返回文章列表</v-btn>
+        <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-4">
+          <v-btn to="/" variant="text" size="small" prepend-icon="mdi-arrow-left">返回文章列表</v-btn>
+          <ClientOnly>
+            <v-btn
+              v-if="user.management"
+              :to="`/articles/${article.id}/edit`"
+              color="primary"
+              variant="tonal"
+              size="small"
+              prepend-icon="mdi-pencil-outline"
+              >編輯文章</v-btn
+            >
+          </ClientOnly>
+        </div>
         <h2 class="article-title text-h4 font-weight-bold mb-4">{{ article.title }}</h2>
         <div class="d-flex align-center flex-wrap ga-4 text-body-2 text-text-tertiary">
           <span><v-icon size="small" class="mr-1">mdi-account-circle-outline</v-icon>SeaotterMS</span>

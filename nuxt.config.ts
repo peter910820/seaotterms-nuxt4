@@ -31,11 +31,7 @@ export default defineNuxtConfig({
   },
   modules: ["@pinia/nuxt", ["motion-v/nuxt", { directives: true }]],
   plugins: ["@/plugins/nprogress.client.ts"],
-  css: [
-    "@/assets/scss/global.scss",
-    "@/assets/scss/loader.scss",
-    "@/assets/scss/progress.scss",
-  ],
+  css: ["@/assets/scss/global.scss", "@/assets/scss/loader.scss", "@/assets/scss/progress.scss"],
   app: {
     head: {
       title: "SeaotterMSのblog",
