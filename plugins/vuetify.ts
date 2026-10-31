@@ -3,17 +3,10 @@ import "@mdi/font/css/materialdesignicons.css";
 
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
-import {
-  DEFAULT_THEME,
-  THEME_COOKIE_NAME,
-  isAppTheme,
-  themeConfig,
-  themeCookieOptions,
-  type AppTheme,
-} from "@/themes/themeConfig";
+import { DEFAULT_THEME, THEME_COOKIE_NAME, isAppTheme, themeConfig, themeCookieOptions } from "@/themes/themeConfig";
 
 export default defineNuxtPlugin((app) => {
-  const themeCookie = useCookie<AppTheme>(THEME_COOKIE_NAME, themeCookieOptions);
+  const themeCookie = useCookie<string>(THEME_COOKIE_NAME, themeCookieOptions);
   const initialTheme = isAppTheme(themeCookie.value) ? themeCookie.value : DEFAULT_THEME;
 
   if (themeCookie.value !== initialTheme) {

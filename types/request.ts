@@ -12,6 +12,12 @@ export interface ArticleCreateRequest {
   content: string;
 }
 
+export interface ArticleUpdateRequest {
+  title: string;
+  content: string;
+  tags: { name: string }[];
+}
+
 export interface BrandCreateRequest {
   name: string;
   workAmount: number;
@@ -56,6 +62,7 @@ export interface UserUpdateRequest {
   updated_at: string | Date;
   update_name: string;
   avatar: string;
+  introduction: string;
 }
 
 export interface TagCreateRequest {

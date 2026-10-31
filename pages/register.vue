@@ -16,6 +16,7 @@ const form = ref({
 
 const err = ref("");
 const loading = ref(false);
+const registrationOpen = false;
 
 const usernameRules = [(v: string) => !!v || "此欄不能為空"];
 const emailRules = [(v: string) => !!v || "此欄不能為空", (v: string) => /.+@.+\..+/.test(v) || "格式錯誤"];
@@ -26,7 +27,7 @@ const checkPasswordRules = [
 ];
 
 const handleRegisterSubmit = async () => {
-  if (loading.value) {
+  if (!registrationOpen || loading.value) {
     return;
   }
 
@@ -55,11 +56,23 @@ const handleRegisterSubmit = async () => {
 </script>
 
 <template>
-  <v-container class="main-block">
-    <h1 class="page-title mb-6">註冊</h1>
+  <section aria-labelledby="register-heading">
+    <div class="d-flex align-baseline justify-space-between ga-3 mb-4 pb-3 border-b">
+      <h1 id="register-heading" class="text-h6 font-weight-bold">註冊</h1>
+      <span class="text-caption text-text-tertiary">REGISTER</span>
+    </div>
     <MotionReveal>
-      <v-card class="form-card" color="background">
-      <v-card-text class="pa-8">
+      <v-card color="surface" elevation="0" rounded="lg" class="border pa-6">
+        <div class="d-flex align-center ga-3 mb-6">
+          <v-avatar color="primary" variant="tonal" rounded="lg" size="48">
+            <v-icon icon="mdi-account-plus-outline" />
+          </v-avatar>
+          <div>
+            <h2 class="text-subtitle-1 font-weight-bold">建立帳號</h2>
+            <p class="text-body-2 text-text-tertiary">目前不開放註冊。</p>
+          </div>
+        </div>
+        <v-divider class="mb-6" />
         <v-form @submit.prevent="handleRegisterSubmit">
           <v-text-field
             v-model="form.username"
@@ -113,15 +126,14 @@ const handleRegisterSubmit = async () => {
             {{ err }}
           </div>
 
-          <v-btn color="primary" variant="elevated" size="large" :loading="loading" type="submit" block>
+          <v-btn color="primary" variant="elevated" size="large" :loading="loading" :disabled="!registrationOpen" type="submit" block>
             註冊
             <v-icon end>mdi-send</v-icon>
           </v-btn>
         </v-form>
-      </v-card-text>
       </v-card>
     </MotionReveal>
-  </v-container>
+  </section>
 </template>
 
 <style lang="scss" scoped>

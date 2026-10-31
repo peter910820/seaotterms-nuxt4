@@ -14,6 +14,7 @@ export const useUserStore = defineStore("user", () => {
     updated_at: new Date(),
     update_name: "",
     avatar: "",
+    introduction: "",
     dataVersion: 0,
   });
 
@@ -41,6 +42,7 @@ export const useUserStore = defineStore("user", () => {
     user.value.updated_at = new Date();
     user.value.update_name = "";
     user.value.avatar = "";
+    user.value.introduction = "";
     user.value.dataVersion = 0;
   };
 

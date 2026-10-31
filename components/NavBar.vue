@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { useLoginModal } from "@/stores/useLoginModal";
 import { useAppTheme } from "@/composables/useAppTheme";
+import { useLogout } from "@/composables/useLogout";
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
-const { showLoginModal, openLoginModal } = useLoginModal();
+const { openLoginModal } = useLoginModal();
+const { logout, loading: loggingOut } = useLogout();
 
 const route = useRoute();
-const { isDark, toggleTheme } = useAppTheme();
+const { isDark, nextThemeLabel, toggleTheme } = useAppTheme();
 const userData = computed(() => user.value);
 const drawer = ref(false);
-const profileDrawer = ref(false);
-
-const otherMenu = ref(false);
+const accountMenu = ref(false);
 
 interface NavigationItem {
   to: string;
@@ -21,289 +21,459 @@ interface NavigationItem {
   requiresAuthentication?: boolean;
 }
 
-interface NavigationMenu {
-  name: string;
-  icon: string;
-  items: NavigationItem[];
-}
-
 const primaryNavigationItems: NavigationItem[] = [
   { to: "/", icon: "mdi-home", title: "首頁" },
   { to: "/system-todos", icon: "mdi-calendar-clock", title: "系統更新待辦" },
   { to: "/todos", icon: "mdi-format-list-checks", title: "TodoList" },
-  { to: "/self-galgames", icon: "mdi-dice-multiple", title: "Galgame紀錄" },
+  { to: "/self/galgame", icon: "mdi-dice-multiple", title: "Galgame紀錄" },
 ];
 
-const navigationMenus = {
-  other: {
-    name: "其他功能",
-    icon: "mdi-home-group",
-    items: [
-      { to: "/articles/create", icon: "mdi-pencil", title: "建立文章" },
-      { to: "/user-maintain", icon: "mdi-account-cog", title: "使用者帳號維護", requiresAuthentication: true },
-    ],
-  },
-} satisfies Record<string, NavigationMenu>;
+const otherNavigationItems: NavigationItem[] = [
+  { to: "/articles/create", icon: "mdi-pencil", title: "建立文章" },
+  { to: "/user-maintain", icon: "mdi-account-cog", title: "使用者帳號維護", requiresAuthentication: true },
+];
 
-const { other: otherNavigationMenu } = navigationMenus;
 const isAuthenticated = computed(() => userData.value.id !== 0);
+const displayName = computed(() => userData.value.username || "個人資料");
 const getVisibleNavigationItems = (items: NavigationItem[]) =>
   items.filter((item) => !item.requiresAuthentication || isAuthenticated.value);
-const isNavigationMenuActive = (menu: NavigationMenu) => menu.items.some((item) => route.path === item.to);
-const mobileNavigationItems = computed(() => [
+const isItemActive = (to: string) => {
+  if (to === "/") return route.path === "/";
+  return route.path === to || route.path.startsWith(`${to}/`);
+};
+const drawerNavigationItems = computed(() => [
   ...primaryNavigationItems,
-  ...Object.values(navigationMenus).flatMap((menu) => getVisibleNavigationItems(menu.items)),
+  ...getVisibleNavigationItems(otherNavigationItems),
 ]);
 
-const handleLogout = () => {
-  const session = useCookie("blog-userinfo-session", {
-    path: "/",
-    maxAge: 0,
-    sameSite: "none",
-    domain: useRuntimeConfig().public.rootDomain,
-    secure: true,
-  });
-  session.value = null;
-  userStore.reset();
-  drawer.value = false;
+const handleLogout = async () => {
+  if (await logout()) {
+    accountMenu.value = false;
+    drawer.value = false;
+  }
 };
+
+watch(
+  () => route.fullPath,
+  () => {
+    drawer.value = false;
+    accountMenu.value = false;
+  },
+);
 </script>
 
 <template>
-  <v-app-bar color="background" elevation="0" class="navbar" app>
-    <v-app-bar-nav-icon :ripple="false" @click="drawer = !drawer" class="d-md-none"></v-app-bar-nav-icon>
-
-    <v-app-bar-title>
-      <NuxtLink to="/" class="brand-link">Home</NuxtLink>
-    </v-app-bar-title>
-
-    <v-spacer></v-spacer>
-
-    <!-- Theme Toggle Button -->
-    <v-btn
-      icon
-      variant="text"
-      :ripple="false"
-      @click="toggleTheme"
-      class="theme-toggle-btn"
-      :title="isDark ? '切換到淺色主題' : '切換到深色主題'"
-    >
-      <v-icon>{{ isDark ? "mdi-weather-sunny" : "mdi-weather-night" }}</v-icon>
-    </v-btn>
-
-    <!-- Desktop Navigation -->
-    <div class="desktop-navigation d-none d-md-flex align-center">
-      <v-sheet class="nav-group" color="surface" border rounded="pill">
-        <v-btn
-          v-for="item in primaryNavigationItems"
-          :key="item.to"
-          variant="text"
-          rounded="pill"
-          :ripple="false"
-          :to="item.to"
-          :prepend-icon="item.icon"
+  <v-app-bar color="background" elevation="0" height="72" class="navbar" app>
+    <div class="navbar-inner">
+      <div class="navbar-start">
+        <button
+          type="button"
+          class="icon-btn menu-btn"
+          aria-label="開啟選單"
+          :aria-expanded="drawer"
+          @click="drawer = !drawer"
         >
-          {{ item.title }}
-        </v-btn>
-      </v-sheet>
+          <v-icon size="20">{{ drawer ? "mdi-close" : "mdi-menu" }}</v-icon>
+        </button>
 
-      <v-sheet class="nav-group" color="surface" border rounded="pill">
-        <v-menu v-model="otherMenu" location="bottom" transition="fade-transition">
-          <template v-slot:activator="{ props }">
-            <v-btn
-              v-bind="props"
-              variant="text"
-              rounded="pill"
-              :ripple="false"
-              :active="isNavigationMenuActive(otherNavigationMenu)"
-              :prepend-icon="otherNavigationMenu.icon"
-              append-icon="mdi-menu-down"
-            >
-              {{ otherNavigationMenu.name }}
-            </v-btn>
+        <NuxtLink to="/" class="brand">
+          <img class="brand-mark" src="https://cdn.seaotterms.net/img-cdn/blog-icon.png" alt="" />
+          <span class="brand-name">seaotterms.com</span>
+        </NuxtLink>
+      </div>
+
+      <div class="navbar-end">
+        <button
+          type="button"
+          class="icon-btn theme-button"
+          :title="`切換到${nextThemeLabel}`"
+          :aria-label="`切換到${nextThemeLabel}`"
+          @click="toggleTheme"
+        >
+          <v-icon size="18">{{ isDark ? "mdi-weather-sunny" : "mdi-weather-night" }}</v-icon>
+        </button>
+        <ThemeVersionSwitch />
+
+        <button v-if="!isAuthenticated" type="button" class="login-btn" @click="openLoginModal">登入</button>
+
+        <v-menu
+          v-else
+          v-model="accountMenu"
+          location="bottom end"
+          offset="10"
+          transition="fade-transition"
+          content-class="nav-menu-content"
+        >
+          <template #activator="{ props }">
+            <button v-bind="props" type="button" class="account-btn" :aria-expanded="accountMenu">
+              <span class="account-avatar">
+                <img v-if="userData.avatar" :src="userData.avatar" alt="" />
+                <v-icon v-else size="16">mdi-account</v-icon>
+              </span>
+              <span class="account-name">{{ displayName }}</span>
+              <v-icon size="16" class="chevron" :class="{ open: accountMenu }">mdi-chevron-down</v-icon>
+            </button>
           </template>
-          <v-list bg-color="background" rounded="xl">
-            <v-list-item
-              v-for="item in getVisibleNavigationItems(otherNavigationMenu.items)"
-              :key="item.to"
-              :active="false"
-              :to="item.to"
-              :prepend-icon="item.icon"
-              :title="item.title"
-            ></v-list-item>
-          </v-list>
-        </v-menu>
-      </v-sheet>
 
-      <v-sheet class="nav-group" color="surface" border rounded="pill">
-        <v-btn
-          v-if="!isAuthenticated"
-          variant="text"
-          rounded="pill"
-          :ripple="false"
-          prepend-icon="mdi-login"
-          @click.prevent="openLoginModal"
-        >
-          登入
-        </v-btn>
-        <template v-else>
-          <v-btn
-            variant="text"
-            rounded="pill"
-            :ripple="false"
-            prepend-icon="mdi-account-circle"
-            @click.prevent="profileDrawer = true"
-          >
-            個人資料
-          </v-btn>
-          <v-btn variant="text" rounded="pill" :ripple="false" prepend-icon="mdi-logout" @click.prevent="handleLogout"
-            >登出</v-btn
-          >
-        </template>
-      </v-sheet>
+          <div class="menu-panel">
+            <button type="button" class="menu-item menu-item-danger" :disabled="loggingOut" @click="handleLogout">
+              <span class="menu-item-icon">
+                <v-icon size="18">mdi-logout</v-icon>
+              </span>
+              <span>登出</span>
+            </button>
+          </div>
+        </v-menu>
+      </div>
     </div>
 
-    <LoginModal v-model="showLoginModal" />
   </v-app-bar>
 
-  <!-- Mobile Navigation Drawer -->
-  <v-navigation-drawer v-model="drawer" temporary location="left" class="mobile-drawer">
-    <v-list>
-      <v-list-item
-        v-for="item in mobileNavigationItems"
-        :key="item.to"
-        :ripple="false"
-        :to="item.to"
-        :prepend-icon="item.icon"
-        :title="item.title"
-        @click="drawer = false"
-      ></v-list-item>
-      <v-list-item
-        v-if="isAuthenticated"
-        :ripple="false"
-        prepend-icon="mdi-account-circle"
-        title="個人資料"
-        @click="
-          profileDrawer = true;
-          drawer = false;
-        "
-      ></v-list-item>
-      <v-list-item
-        v-if="!isAuthenticated"
-        :ripple="false"
-        prepend-icon="mdi-login"
-        title="登入"
-        @click="
-          openLoginModal();
-          drawer = false;
-        "
-      ></v-list-item>
-      <v-list-item v-else :ripple="false" prepend-icon="mdi-logout" title="登出" @click="handleLogout"></v-list-item>
-      <v-divider class="my-2"></v-divider>
-      <v-list-item
-        :prepend-icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
-        :ripple="false"
-        :title="isDark ? '切換到淺色主題' : '切換到深色主題'"
-        @click="toggleTheme"
-      ></v-list-item>
-    </v-list>
+  <v-navigation-drawer v-model="drawer" temporary location="left" width="320" color="background" class="mobile-drawer">
+    <div class="drawer-body">
+      <p class="drawer-label">瀏覽</p>
+      <nav class="drawer-nav" aria-label="主要導覽">
+        <NuxtLink
+          v-for="item in drawerNavigationItems"
+          :key="item.to"
+          :to="item.to"
+          class="drawer-link"
+          :class="{ active: isItemActive(item.to) }"
+        >
+          <span class="menu-item-icon">
+            <v-icon size="18">{{ item.icon }}</v-icon>
+          </span>
+          <span>{{ item.title }}</span>
+        </NuxtLink>
+      </nav>
+
+      <p class="drawer-label">帳號</p>
+      <div class="drawer-nav">
+        <button v-if="!isAuthenticated" type="button" class="drawer-link" @click="openLoginModal(); drawer = false">
+          <span class="menu-item-icon">
+            <v-icon size="18">mdi-login</v-icon>
+          </span>
+          <span>登入</span>
+        </button>
+        <button v-else type="button" class="drawer-link drawer-link-danger" :disabled="loggingOut" @click="handleLogout">
+          <span class="menu-item-icon">
+            <v-icon size="18">mdi-logout</v-icon>
+          </span>
+          <span>登出</span>
+        </button>
+      </div>
+
+      <div class="drawer-footer">
+        <button type="button" class="drawer-link" @click="toggleTheme">
+          <span class="menu-item-icon">
+            <v-icon size="18">{{ isDark ? "mdi-weather-sunny" : "mdi-weather-night" }}</v-icon>
+          </span>
+          <span>切換到{{ nextThemeLabel }}</span>
+        </button>
+      </div>
+    </div>
   </v-navigation-drawer>
 
-  <!-- Profile Drawer (from right) -->
-  <v-navigation-drawer v-model="profileDrawer" temporary location="right" width="400" class="profile-drawer" touchable>
-    <template v-slot:prepend>
-      <v-toolbar color="transparent" density="compact">
-        <v-spacer></v-spacer>
-        <v-btn icon variant="text" :ripple="false" @click="profileDrawer = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-toolbar>
-    </template>
-    <ClientOnly>
-      <MyProfile />
-    </ClientOnly>
-  </v-navigation-drawer>
 </template>
 
 <style lang="scss" scoped>
 .navbar {
   background-color: rgb(var(--v-theme-background)) !important;
-  border-bottom: 2px solid rgb(var(--v-theme-border));
-}
+  border-bottom: 1px solid rgb(var(--v-theme-border)) !important;
+  box-shadow: 0 8px 24px var(--v-theme-shadow-light) !important;
 
-.brand-link {
-  text-decoration: none;
-  color: rgb(var(--v-theme-text-primary));
-  font-weight: 600;
-  font-size: 1.25rem;
-
-  &:hover {
-    opacity: 0.8;
+  :deep(.v-toolbar__content) {
+    height: 72px !important;
+    padding-inline: 20px;
+    overflow: visible;
   }
 }
 
-.desktop-navigation {
-  gap: 8px;
-}
-
-.nav-group {
+.navbar-inner {
+  width: 100%;
   display: flex;
   align-items: center;
-  min-height: 40px;
-  padding: 2px;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.navbar-start,
+.navbar-end,
+.brand,
+.account-btn,
+.drawer-link,
+.menu-item {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-start {
+  gap: 8px;
+  min-width: 0;
+}
+
+.navbar-end {
+  gap: 12px;
+  margin-left: auto;
+}
+
+.brand {
+  gap: 10px;
+  min-width: 0;
+  text-decoration: none;
+  color: rgb(var(--v-theme-text-primary));
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.brand-name {
+  font-family: "Cubic_11_1.100_R", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
+  transition: transform 160ms ease;
+
+  &.open {
+    transform: rotate(180deg);
+  }
+}
+
+.icon-btn,
+.login-btn,
+.account-btn,
+.drawer-link,
+.menu-item {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-text-primary)) 12%, transparent);
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 72%, transparent);
+  color: rgb(var(--v-theme-text-secondary));
+  transition:
+    color 160ms ease,
+    border-color 160ms ease;
+
+  &:hover {
+    color: rgb(var(--v-theme-text-primary));
+    border-color: color-mix(in srgb, rgb(var(--v-theme-info)) 50%, transparent);
+  }
+}
+
+.theme-button {
+  border-radius: 50%;
+}
+
+.login-btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgb(var(--v-theme-info));
+  color: rgb(var(--v-theme-surface));
+  font-weight: 650;
+  box-shadow: 0 4px 14px rgba(var(--v-theme-info), 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: filter 160ms ease, box-shadow 160ms ease;
+
+  &:hover {
+    filter: brightness(1.06);
+    box-shadow: 0 6px 18px rgba(var(--v-theme-info), 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+}
+
+.account-btn {
+  height: 38px;
+  max-width: 220px;
+  gap: 8px;
+  padding: 0 10px 0 6px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-text-primary)) 12%, transparent);
+  background: color-mix(in srgb, rgb(var(--v-theme-surface)) 78%, transparent);
+  color: rgb(var(--v-theme-text-primary));
+}
+
+.account-avatar {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: color-mix(in srgb, rgb(var(--v-theme-info)) 16%, transparent);
+  color: rgb(var(--v-theme-info));
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.account-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.92rem;
+}
+
+.menu-panel {
+  min-width: 220px;
+  padding: 6px;
+  border-radius: 16px;
+  background: rgb(var(--v-theme-background));
+  border: 1px solid color-mix(in srgb, rgb(var(--v-theme-text-primary)) 10%, transparent);
+  box-shadow: 0 16px 40px var(--v-theme-shadow-medium);
+}
+
+.menu-item {
+  width: 100%;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: transparent;
+  color: rgb(var(--v-theme-text-secondary));
+  font-size: 0.92rem;
+  text-align: left;
+  text-decoration: none;
+
+  &:hover,
+  &.active {
+    background: color-mix(in srgb, rgb(var(--v-theme-info)) 12%, transparent);
+    color: rgb(var(--v-theme-text-primary));
+  }
+}
+
+.menu-item-icon {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: color-mix(in srgb, rgb(var(--v-theme-info)) 14%, transparent);
+  color: rgb(var(--v-theme-info));
+}
+
+.menu-item-danger {
+  color: rgb(var(--v-theme-error));
+  border-radius: 999px;
+
+  .menu-item-icon {
+    color: rgb(var(--v-theme-error));
+    background: color-mix(in srgb, rgb(var(--v-theme-error)) 12%, transparent);
+  }
+
+  &:hover {
+    color: rgb(var(--v-theme-error));
+    background: color-mix(in srgb, rgb(var(--v-theme-error)) 10%, transparent);
+    box-shadow: 0 4px 14px rgba(var(--v-theme-error), 0.15);
+  }
 }
 
 .mobile-drawer {
   background-color: rgb(var(--v-theme-background)) !important;
-  transition-duration: 120ms !important;
+  border-color: color-mix(in srgb, rgb(var(--v-theme-text-primary)) 12%, transparent) !important;
 }
 
-.profile-drawer {
-  background-color: rgb(var(--v-theme-background)) !important;
-  transition-duration: 120ms !important;
+.drawer-body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px 20px;
+}
 
-  // Hide scrollbar but keep scroll functionality
-  :deep(.v-navigation-drawer__content) {
-    overflow-y: auto;
-    scrollbar-width: none; // Firefox
-    -ms-overflow-style: none; // IE and Edge
+.drawer-label {
+  margin: 8px 12px 4px;
+  color: rgb(var(--v-theme-text-tertiary));
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
 
-    &::-webkit-scrollbar {
-      display: none; // Chrome, Safari, Opera
-    }
+.drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drawer-link {
+  width: 100%;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: transparent;
+  color: rgb(var(--v-theme-text-secondary));
+  font-size: 0.95rem;
+  text-align: left;
+  text-decoration: none;
+
+  &:hover,
+  &.active {
+    background: color-mix(in srgb, rgb(var(--v-theme-info)) 12%, transparent);
+    color: rgb(var(--v-theme-text-primary));
+  }
+
+  &.active {
+    color: rgb(var(--v-theme-info));
+    font-weight: 650;
   }
 }
 
-:deep(.v-list-item) {
-  color: rgb(var(--v-theme-text-secondary));
-}
-
-:deep(.v-overlay__scrim) {
-  pointer-events: auto !important;
-}
-
-:deep(.v-menu .v-overlay__content) {
-  background-color: rgb(var(--v-theme-background));
-  border-radius: var(--v-border-radius-xl);
-  overflow: hidden;
-}
-
-:deep(.v-menu .v-list) {
-  background-color: rgb(var(--v-theme-background));
-}
-
-:deep(.v-menu .v-list-item) {
-  background-color: rgb(var(--v-theme-background));
+.drawer-link-danger {
+  color: rgb(var(--v-theme-error));
+  border-radius: 999px;
 
   &:hover {
-    background-color: rgba(var(--v-theme-primary), 0.1);
+    box-shadow: 0 4px 14px rgba(var(--v-theme-error), 0.15);
   }
+
+  .menu-item-icon {
+    color: rgb(var(--v-theme-error));
+    background: color-mix(in srgb, rgb(var(--v-theme-error)) 12%, transparent);
+  }
+}
+
+.drawer-footer {
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+:global(.nav-menu-content) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 16px !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mobile-drawer,
-  .profile-drawer,
-  :deep(.v-menu .v-overlay__content) {
+  .chevron,
+  .icon-btn,
+  .login-btn,
+  .mobile-drawer {
     transition: none !important;
   }
 }

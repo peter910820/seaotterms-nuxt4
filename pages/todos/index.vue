@@ -95,6 +95,12 @@ const handleCreateTopicSubmit = async () => {
 
 const todos = computed(() => todo.value);
 const todoTopics = computed(() => todoTopic.value);
+const statuses = [
+  { value: 0, label: "未開始", color: "error" },
+  { value: 1, label: "進行中", color: "info" },
+  { value: 2, label: "擱置中", color: "tagColor" },
+  { value: 3, label: "已完成", color: "success" },
+];
 
 const todoTopicItems = computed(() => {
   return todoTopics.value.map((topic) => ({
@@ -108,13 +114,10 @@ const {
   data: todoTopicsData,
   error: todoTopicsError,
   refresh: refreshTodoTopics,
-} = await useFetch<CommonResponse<TodoTopicQueryResponse[]>>(
-  `todo-topics/${user.value.username}`,
-  {
-    baseURL: useRuntimeConfig().public.apiUrl,
-    credentials: "include",
-  },
-);
+} = await useFetch<CommonResponse<TodoTopicQueryResponse[]>>(`todo-topics/${user.value.username}`, {
+  baseURL: useRuntimeConfig().public.apiUrl,
+  credentials: "include",
+});
 
 if (todoTopicsData.value) {
   todoTopicStore.set(todoTopicsData.value.data);
@@ -152,10 +155,10 @@ const getDeadlineStatus = (deadline: Date | null | string) => {
   today.setHours(0, 0, 0, 0);
   const deadlineOnly = new Date(deadlineDate);
   deadlineOnly.setHours(0, 0, 0, 0);
-  
+
   const threeDaysLater = new Date(today);
   threeDaysLater.setDate(today.getDate() + 3);
-  
+
   if (deadlineOnly < today) {
     return "expired";
   } else if (deadlineOnly <= threeDaysLater) {
@@ -251,28 +254,38 @@ const deleteTodo = async (id: number) => {
 </script>
 
 <template>
-  <v-container class="main-block">
-    <div class="d-flex align-center justify-space-between mb-4">
-      <h1>待辦清單</h1>
-      <v-btn class="button-simple" variant="flat" @click="openCreateTopicModal">建立 Todo 類別</v-btn>
+  <section aria-labelledby="todos-heading">
+    <div class="d-flex align-baseline justify-space-between ga-3 mb-4 pb-3 border-b">
+      <h1 id="todos-heading" class="text-h6 font-weight-bold">待辦清單</h1>
+      <span class="text-caption text-text-tertiary">TODO LIST</span>
     </div>
 
-    <div class="hint mb-4">*按鈕切換狀態>> N: 未開始 P: 進行中 S: 擱置中 C: 已完成 D: 刪除</div>
-
-    <MotionReveal>
-      <v-card class="add-block mb-4">
-        <v-card-text class="pa-4">
-        <v-form ref="formRef">
-          <v-row align="start" no-gutters>
-          <v-col cols="12" sm="2" class="mb-2 mb-sm-0 px-1">
+    <v-card color="surface" elevation="0" rounded="lg" class="border pa-5 mb-4">
+      <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
+        <div>
+          <h2 class="text-subtitle-1 font-weight-bold">新增待辦</h2>
+          <p class="text-body-2 text-text-tertiary">選擇類別並填寫待辦事項。</p>
+        </div>
+        <v-btn
+          variant="tonal"
+          color="primary"
+          size="small"
+          prepend-icon="mdi-folder-plus-outline"
+          @click="openCreateTopicModal"
+        >
+          建立 Todo 類別
+        </v-btn>
+      </div>
+      <v-form ref="formRef" @submit.prevent="handleSubmit">
+        <v-row dense>
+          <v-col cols="12" sm="6" lg="3">
             <v-select
               v-model="form.topic"
               :items="todoTopicItems"
               item-title="title"
               item-value="value"
               label="選擇主題"
-              placeholder="選擇主題"
-              prepend-inner-icon="mdi-folder"
+              prepend-inner-icon="mdi-folder-outline"
               variant="outlined"
               density="compact"
               :rules="topicRules"
@@ -280,7 +293,7 @@ const deleteTodo = async (id: number) => {
               hide-details="auto"
             />
           </v-col>
-          <v-col cols="12" sm="5" class="mb-2 mb-sm-0 px-1">
+          <v-col cols="12" sm="6" lg="4">
             <v-text-field
               v-model="form.title"
               label="標題"
@@ -292,7 +305,7 @@ const deleteTodo = async (id: number) => {
               hide-details="auto"
             />
           </v-col>
-          <v-col cols="12" sm="3" class="mb-2 mb-sm-0 px-1">
+          <v-col cols="12" sm="6" lg="3">
             <v-text-field
               v-model="deadlineDate"
               label="截止日期"
@@ -303,111 +316,91 @@ const deleteTodo = async (id: number) => {
               hide-details="auto"
             />
           </v-col>
-          <v-col cols="12" sm="2" class="text-center px-1">
-            <v-btn
-              color="primary"
-              variant="elevated"
-              :loading="loading"
-              @click="handleSubmit"
-              block
-              class="button-submit"
-            >
-              新增
-              <v-icon end>mdi-send</v-icon>
-            </v-btn>
+          <v-col cols="12" sm="6" lg="2">
+            <v-btn color="primary" type="submit" :loading="loading" block prepend-icon="mdi-plus">新增</v-btn>
           </v-col>
-          </v-row>
-        </v-form>
-        </v-card-text>
-      </v-card>
-    </MotionReveal>
+        </v-row>
+      </v-form>
+    </v-card>
+
+    <div class="d-flex align-center justify-space-between ga-3 mb-3">
+      <h2 class="text-subtitle-1 font-weight-bold">我的待辦</h2>
+      <span class="text-caption text-text-tertiary">共 {{ todos.length }} 項</span>
+    </div>
+
+    <v-card
+      v-if="!todos.length"
+      color="surface"
+      elevation="0"
+      rounded="lg"
+      class="border pa-8 text-center text-text-tertiary"
+    >
+      目前沒有待辦事項，從上方新增第一項吧。
+    </v-card>
 
     <MotionReveal v-for="todo in todos" :key="todo.id">
-      <v-card class="todo-card mb-3 floatup-div">
-        <v-card-text class="d-flex align-center pa-3">
-        <v-row no-gutters align="center">
-          <!-- Title with deadline -->
-          <v-col cols="8" sm="6" class="todo-title-wrapper">
-            <div class="todo-title">
-              <div class="todo-title-text">[{{ todo.topic }}]{{ todo.title }}</div>
-              <div
-                v-if="todo.deadline"
-                :class="[
-                  'todo-deadline-text',
-                  {
-                    'deadline-expired': getDeadlineStatus(todo.deadline) === 'expired',
-                    'deadline-urgent': getDeadlineStatus(todo.deadline) === 'urgent',
-                  },
-                ]"
-              >
-                截止: {{ new Date(todo.deadline).toISOString().split("T")[0] }}
-              </div>
+      <v-card tag="article" color="surface" elevation="0" rounded="lg" class="border pa-5 mb-3">
+        <div class="d-flex align-start justify-space-between flex-wrap ga-3">
+          <div class="todo-details">
+            <div class="text-caption text-primary mb-1">{{ todo.topic }}</div>
+            <h3 class="text-subtitle-1 font-weight-bold todo-title">{{ todo.title }}</h3>
+            <div
+              v-if="todo.deadline"
+              class="text-caption mt-2"
+              :class="getDeadlineStatus(todo.deadline) === 'normal' ? 'text-text-tertiary' : 'text-error'"
+            >
+              <v-icon icon="mdi-calendar-outline" size="small" class="mr-1" />
+              截止：{{ new Date(todo.deadline).toISOString().split("T")[0] }}
+              <span v-if="getDeadlineStatus(todo.deadline) === 'expired'">（已逾期）</span>
+              <span v-else-if="getDeadlineStatus(todo.deadline) === 'urgent'">（即將到期）</span>
             </div>
-          </v-col>
-
-          <!-- Status Buttons -->
-          <v-col cols="2" sm="2" class="todo-button">
-            <div class="d-flex gap-1">
-              <v-btn
-                :class="['button-status', todo.status == 0 ? 'background-n' : '']"
-                size="small"
-                variant="flat"
-                @click="changeStatus(todo.id, 0)"
-              >
-                N
-              </v-btn>
-              <v-btn
-                :class="['button-status', todo.status == 1 ? 'background-p' : '']"
-                size="small"
-                variant="flat"
-                @click="changeStatus(todo.id, 1)"
-              >
-                P
-              </v-btn>
-              <v-btn
-                :class="['button-status', todo.status == 2 ? 'background-s' : '']"
-                size="small"
-                variant="flat"
-                @click="changeStatus(todo.id, 2)"
-              >
-                S
-              </v-btn>
-              <v-btn
-                :class="['button-status', todo.status == 3 ? 'background-c' : '']"
-                size="small"
-                variant="flat"
-                @click="changeStatus(todo.id, 3)"
-              >
-                C
-              </v-btn>
-              <v-btn class="button-status background-d" size="small" variant="flat" @click="deleteTodo(todo.id)">
-                D
-              </v-btn>
-            </div>
-          </v-col>
-
-          <!-- Status Display -->
-          <v-col cols="2" sm="4" class="todo-status text-right">
-            <v-chip v-if="todo.status === 0" color="error" size="default" variant="flat">未開始</v-chip>
-            <v-chip v-else-if="todo.status === 1" color="info" size="default" variant="flat">進行中</v-chip>
-            <v-chip v-else-if="todo.status === 2" color="tagColor" size="default" variant="flat">擱置中</v-chip>
-            <v-chip v-else-if="todo.status === 3" color="success" size="default" variant="flat">已完成</v-chip>
-            <v-chip v-else size="default" variant="flat">?</v-chip>
-          </v-col>
-          </v-row>
-        </v-card-text>
+          </div>
+          <v-chip
+            v-if="statuses.find((status) => status.value === todo.status)"
+            :color="statuses.find((status) => status.value === todo.status)?.color"
+            size="small"
+            variant="tonal"
+          >
+            {{ statuses.find((status) => status.value === todo.status)?.label }}
+          </v-chip>
+          <v-chip v-else size="small" variant="tonal">未知狀態</v-chip>
+        </div>
+        <v-divider class="my-4" />
+        <div class="d-flex align-center flex-wrap ga-2">
+          <span class="text-caption text-text-tertiary mr-1">調整狀態</span>
+          <v-btn
+            v-for="status in statuses"
+            :key="status.value"
+            size="small"
+            :color="status.color"
+            :variant="todo.status === status.value ? 'tonal' : 'text'"
+            :aria-pressed="todo.status === status.value"
+            @click="changeStatus(todo.id, status.value)"
+          >
+            {{ status.label }}
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            size="small"
+            color="error"
+            variant="text"
+            prepend-icon="mdi-delete-outline"
+            @click="deleteTodo(todo.id)"
+            >刪除</v-btn
+          >
+        </div>
       </v-card>
     </MotionReveal>
-  </v-container>
+  </section>
 
   <v-dialog v-model="createTopicModalVisible" max-width="600px">
-    <v-card class="modal-content">
-      <v-card-title class="text-h5">建立 Todo 類別</v-card-title>
+    <v-card color="surface" rounded="lg">
+      <v-card-title class="text-h6">建立 Todo 類別</v-card-title>
       <v-card-text>
         <v-form ref="createTopicFormRef" @submit.prevent="handleCreateTopicSubmit">
           <v-text-field
             v-model="createTopicForm.topicName"
-            label="Title"
+            label="類別名稱"
             prepend-inner-icon="mdi-format-title"
             variant="outlined"
             required
@@ -417,279 +410,22 @@ const deleteTodo = async (id: number) => {
         </v-form>
       </v-card-text>
       <v-card-actions>
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn variant="text" @click="closeCreateTopicModal">取消</v-btn>
-        <v-btn color="primary" variant="flat" :loading="createTopicLoading" @click="handleCreateTopicSubmit">
-          建立主題
-          <v-icon end>mdi-send</v-icon>
-        </v-btn>
+        <v-btn color="primary" variant="flat" :loading="createTopicLoading" @click="handleCreateTopicSubmit"
+          >建立主題</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <style lang="scss" scoped>
-.main-block {
-  padding: 40px;
-}
-
-h1 {
-  font-family: "Cubic_11_1.100_R", sans-serif;
-  font-size: 2rem;
-  font-weight: bold;
-  color: rgb(var(--v-theme-tagColor));
-}
-
-.hint {
-  color: rgb(var(--v-theme-error));
-  font-size: 1rem;
-}
-
-.modal-content {
-  background: rgb(var(--v-theme-background));
-}
-
-.add-block {
-  border: 2px solid rgb(var(--v-theme-border));
-  border-radius: 20px;
-  background-color: rgb(var(--v-theme-background));
-
-  :deep(.v-field__details) {
-    min-height: 20px;
-  }
-
-  :deep(.v-messages) {
-    min-height: 20px;
-  }
-}
-
-.todo-card {
-  border: 2px solid rgb(var(--v-theme-border));
-  border-radius: 20px;
-  background-color: rgb(var(--v-theme-background));
-  font-size: 24px;
-  min-height: 100px;
-  cursor: pointer;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-
-  &:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 8px 16px var(--v-theme-shadow-medium);
-  }
-}
-
-.todo-title-wrapper {
-  position: relative;
+.todo-details {
+  min-width: 0;
 }
 
 .todo-title {
-  text-align: left;
-
-  .todo-title-text {
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    font-size: 24px;
-    line-height: 1.2;
-  }
-
-  .todo-deadline-text {
-    font-size: 0.75rem;
-    color: rgb(var(--v-theme-text-olive));
-    margin-top: 2px;
-    line-height: 1.2;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-
-    &.deadline-urgent {
-      color: rgb(var(--v-theme-text-red-rgb));
-      font-weight: 600;
-    }
-
-    &.deadline-expired {
-      color: #000000;
-      font-weight: 600;
-    }
-  }
-}
-
-.todo-button {
-  padding: 0;
-  text-align: left;
-  padding-right: 4px;
-
-  .d-flex {
-    gap: 2px;
-  }
-}
-
-.todo-status {
-  text-align: right;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  padding-left: 4px;
-
-  :deep(.v-chip) {
-    font-size: 1rem;
-    height: 32px;
-    padding: 0 12px;
-  }
-}
-
-.button-status {
-  min-width: 40px;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  color: white;
-  font-weight: bold;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  background: linear-gradient(
-    135deg,
-    rgb(var(--v-theme-button-inactive-start)) 0%,
-    rgb(var(--v-theme-button-inactive-end)) 100%
-  );
-
-  &:hover {
-    transform: scale(1.1);
-  }
-}
-
-@media (max-width: 960px) {
-  .button-status {
-    min-width: 32px;
-    width: 32px;
-    height: 32px;
-    font-size: 0.75rem;
-  }
-}
-
-.background-n {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--v-theme-status-n-start)) 0%,
-    rgb(var(--v-theme-status-n-end)) 100%
-  );
-}
-
-.background-p {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--v-theme-status-p-start)) 0%,
-    rgb(var(--v-theme-status-p-end)) 100%
-  );
-}
-
-.background-s {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--v-theme-status-s-start)) 0%,
-    rgb(var(--v-theme-status-s-end)) 100%
-  );
-}
-
-.background-c {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--v-theme-status-c-start)) 0%,
-    rgb(var(--v-theme-status-c-end)) 100%
-  );
-}
-
-.background-d {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--v-theme-status-d-start)) 0%,
-    rgb(var(--v-theme-status-d-end)) 100%
-  );
-
-  &:hover {
-    background: linear-gradient(
-      135deg,
-      rgb(var(--v-theme-status-d-hover-start)) 0%,
-      rgb(var(--v-theme-status-d-hover-end)) 100%
-    );
-  }
-}
-
-:deep(.v-btn--variant-elevated.button-submit) {
-  background-color: rgb(var(--v-theme-primary));
-  color: white;
-}
-
-@media (max-width: 960px) {
-  .todo-title .todo-title-text {
-    font-size: 18px;
-  }
-
-  .todo-title .todo-deadline-text {
-    font-size: 0.7rem;
-  }
-
-  .todo-status {
-    padding-left: 2px;
-  }
-
-  .todo-status :deep(.v-chip) {
-    font-size: 0.9rem;
-    height: 28px;
-    padding: 0 10px;
-  }
-
-  .todo-button {
-    padding-right: 2px;
-  }
-
-  .todo-button .d-flex {
-    gap: 2px;
-  }
-}
-
-@media (max-width: 768px) {
-  .todo-card {
-    font-size: 18px;
-  }
-
-  .todo-title .todo-title-text {
-    font-size: 16px;
-  }
-
-  .todo-title .todo-deadline-text {
-    font-size: 0.65rem;
-  }
-
-  .todo-status {
-    font-size: 14px;
-    padding-left: 2px;
-  }
-
-  .todo-status :deep(.v-chip) {
-    font-size: 0.8rem;
-    height: 24px;
-    padding: 0 8px;
-  }
-
-  .button-status {
-    min-width: 28px;
-    width: 28px;
-    height: 28px;
-    font-size: 0.7rem;
-  }
-
-  .todo-button {
-    padding-right: 2px;
-  }
-
-  .todo-button .d-flex {
-    gap: 1px;
-  }
-
-  .hint {
-    font-size: 0.875rem;
-  }
+  overflow-wrap: anywhere;
 }
 </style>

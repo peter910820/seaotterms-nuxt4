@@ -1,4 +1,9 @@
 <script setup lang="ts">
+definePageMeta({
+  ssr: false,
+  middleware: "require-management",
+});
+
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -49,15 +54,27 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <v-container class="main-block">
-    <h1 class="page-title mb-6">建立文章Tag</h1>
+  <section aria-labelledby="create-tag-heading">
+    <div class="d-flex align-baseline justify-space-between ga-3 mb-4 pb-3 border-b">
+      <h1 id="create-tag-heading" class="text-h6 font-weight-bold">建立文章標籤</h1>
+      <span class="text-caption text-text-tertiary">NEW TAG</span>
+    </div>
     <MotionReveal>
-      <v-card class="form-card" color="background">
-      <v-card-text class="pa-8">
+      <v-card color="surface" elevation="0" rounded="lg" class="border pa-6">
+        <div class="d-flex align-center ga-3 mb-6">
+          <v-avatar color="primary" variant="tonal" rounded="lg" size="48"
+            ><v-icon icon="mdi-tag-plus-outline"
+          /></v-avatar>
+          <div>
+            <h2 class="text-subtitle-1 font-weight-bold">新增標籤</h2>
+            <p class="text-body-2 text-text-tertiary">建立標籤，讓文章更容易被找到。</p>
+          </div>
+        </div>
+        <v-divider class="mb-6" />
         <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-text-field
             v-model="form.name"
-            label="Name"
+            label="標籤名稱"
             prepend-inner-icon="mdi-format-title"
             variant="outlined"
             required
@@ -68,23 +85,18 @@ const handleSubmit = async () => {
 
           <v-text-field
             v-model="form.iconName"
-            label="Icon Name"
+            label="圖示名稱（選填）"
             prepend-inner-icon="mdi-tag"
             variant="outlined"
             class="mb-4"
             density="comfortable"
           />
 
-          <v-btn color="primary" variant="elevated" size="large" :loading="loading" type="submit" block>
-            建立文章Tag
-            <v-icon end>mdi-send</v-icon>
+          <v-btn color="primary" size="large" :loading="loading" type="submit" block prepend-icon="mdi-plus">
+            建立標籤
           </v-btn>
         </v-form>
-      </v-card-text>
       </v-card>
     </MotionReveal>
-  </v-container>
+  </section>
 </template>
-
-<style lang="scss" scoped>
-</style>

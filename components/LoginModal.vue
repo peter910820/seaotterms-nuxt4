@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { userInfoHandler } from "@/utils/userInfoHandler";
-import { errorHandler } from "@/utils/errorHandler";
-import { messageStorage } from "@/utils/messageHandler";
-
+import { useLogin } from "@/composables/useLogin";
 import type { LoginRequest } from "@/types/request";
-import type { CommonResponse } from "@/types/response";
 
 interface Props {
   modelValue: boolean;
@@ -18,6 +14,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const router = useRouter();
+const { login, loading } = useLogin();
 
 const dialog = computed({
   get: () => props.modelValue,
@@ -29,97 +26,92 @@ const request = ref<LoginRequest>({
   password: "",
 });
 
-const loading = ref(false);
-
 const handleSubmit = async () => {
   if (!request.value.username || !request.value.password) {
     return;
   }
 
-  loading.value = true;
-  try {
-    const response = await $fetch<CommonResponse>("auth/login", {
-      baseURL: useRuntimeConfig().public.apiUrl,
-      method: "POST",
-      body: request.value,
-      credentials: "include",
-    });
-    userInfoHandler(response.userInfo);
-    messageStorage(response.statusCode, response.infoMsg);
+  if (await login(request.value)) {
     dialog.value = false;
     router.push("/message");
-  } catch (error) {
-    errorHandler(error);
-  } finally {
-    loading.value = false;
   }
 };
 </script>
 
 <template>
-  <v-dialog v-model="dialog" max-width="600px" @click:outside="dialog = false">
-    <v-card class="login-card">
-      <v-card-title class="login-title">
-        <v-icon size="large" class="mr-3">mdi-login</v-icon>
-        登入
-      </v-card-title>
+  <v-dialog v-model="dialog" max-width="460" aria-labelledby="login-title">
+    <v-card color="surface" rounded="xl" class="login-card">
+      <div class="login-accent" aria-hidden="true"></div>
+      <div class="login-content pa-6 pa-sm-8">
+        <div class="d-flex align-start justify-space-between ga-4 mb-6">
+          <v-avatar color="primary" variant="tonal" rounded="lg" size="48">
+            <v-icon icon="mdi-account-outline" size="26" />
+          </v-avatar>
+          <v-btn icon="mdi-close" variant="text" size="small" aria-label="關閉登入視窗" @click="dialog = false" />
+        </div>
 
-      <v-divider></v-divider>
+        <div class="mb-6">
+          <p class="text-overline text-primary font-weight-bold login-eyebrow">SEAOTTERMS / ACCOUNT</p>
+          <h2 id="login-title" class="text-body-2 text-text-secondary">歡迎回來</h2>
+        </div>
 
-      <v-card-text class="pa-8">
         <v-form @submit.prevent="handleSubmit">
           <v-text-field
             v-model="request.username"
-            label="Username"
-            prepend-inner-icon="mdi-account-circle"
+            label="使用者名稱"
+            prepend-inner-icon="mdi-account-outline"
             variant="outlined"
+            autocomplete="username"
             required
-            class="mb-4"
+            class="mb-3"
             density="comfortable"
+            hide-details="auto"
             :rules="[(v) => !!v || '請輸入使用者名稱']"
           />
 
           <v-text-field
             v-model="request.password"
-            label="Password"
+            label="密碼"
             type="password"
-            prepend-inner-icon="mdi-lock"
+            prepend-inner-icon="mdi-lock-outline"
             variant="outlined"
+            autocomplete="current-password"
             required
-            class="mb-2"
+            class="mb-6"
             density="comfortable"
+            hide-details="auto"
             :rules="[(v) => !!v || '請輸入密碼']"
           />
+          <v-btn color="primary" variant="flat" rounded="lg" size="large" :loading="loading" type="submit" block>
+            登入
+            <v-icon end icon="mdi-arrow-right" />
+          </v-btn>
         </v-form>
-      </v-card-text>
-
-      <v-divider></v-divider>
-
-      <v-card-actions class="pa-6">
-        <v-spacer></v-spacer>
-        <v-btn variant="text" @click="dialog = false" class="mr-2">取消</v-btn>
-        <v-btn color="info" variant="elevated" :loading="loading" @click="handleSubmit" size="large">
-          登入
-          <v-icon end>mdi-send</v-icon>
-        </v-btn>
-      </v-card-actions>
+      </div>
     </v-card>
   </v-dialog>
 </template>
 
 <style lang="scss" scoped>
 .login-card {
-  background-color: rgb(var(--v-theme-background));
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(var(--v-theme-border));
 }
 
-.login-title {
-  display: flex;
-  align-items: center;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: rgb(var(--v-theme-info));
-  padding: 24px 32px;
+.login-accent {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 120px;
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.12), transparent 75%);
+  pointer-events: none;
+}
+
+.login-content {
+  position: relative;
+}
+
+.login-eyebrow {
+  letter-spacing: 0.1em !important;
 }
 </style>

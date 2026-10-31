@@ -29,12 +29,17 @@ const form = ref<UserUpdateRequest>({
   updated_at: user.value.updated_at,
   update_name: user.value.update_name,
   avatar: user.value.avatar,
+  introduction: user.value.introduction ?? "",
 });
 const allUserData = ref<UserQueryResponse[]>([]);
 
 const dialog = ref(false);
+const usersLoading = ref(false);
+const usersLoadError = ref(false);
 
 const changeStatus = async () => {
+  usersLoading.value = true;
+  usersLoadError.value = false;
   try {
     const response = await $fetch<CommonResponse<UserQueryResponse[]>>(`users`, {
       baseURL: useRuntimeConfig().public.apiUrl,
@@ -44,8 +49,11 @@ const changeStatus = async () => {
     allUserData.value = (response.data as UserQueryResponse[]).filter((val) => val.username !== user.value.username);
     userInfoHandler(response.userInfo);
   } catch (error) {
+    usersLoadError.value = true;
     console.log(error);
     errorHandler(error);
+  } finally {
+    usersLoading.value = false;
   }
 };
 
@@ -84,12 +92,10 @@ const changeManagementStatus = async (userId: number) => {
     const myUser = allUserData.value.find((item) => item.id === userId);
     if (myUser) {
       try {
-        myUser.management = !myUser.management;
-        myUser.updateName = user.value.update_name;
         const response = await $fetch<CommonResponse<UserQueryResponse[]>>(`users/${userId}`, {
           baseURL: useRuntimeConfig().public.apiUrl,
           method: "PATCH",
-          body: myUser,
+          body: { ...myUser, management: !myUser.management, updateName: user.value.update_name },
           credentials: "include",
         });
         allUserData.value = (response.data as UserQueryResponse[]).filter(
@@ -107,194 +113,116 @@ const changeManagementStatus = async (userId: number) => {
 </script>
 
 <template>
-  <v-container class="main-block">
-    <h1 class="page-title mb-6">使用者帳號維護</h1>
-    <MotionReveal>
-      <v-card class="form-card" color="background">
-      <v-card-text class="pa-8">
-        <v-row class="mb-4">
-          <v-col cols="12" md="6">
-            <div class="user-info">
-              <v-icon class="mr-2">mdi-account</v-icon>
-              <span class="label">使用者名稱:</span>
-              <span class="value">{{ form.username }}</span>
-            </div>
-          </v-col>
-          <v-col cols="12" md="6">
-            <div class="user-info">
-              <v-icon class="mr-2">mdi-shield-account</v-icon>
-              <span class="label">身分:</span>
-              <v-chip v-if="form.management" color="primary" size="small" variant="flat" class="ml-2"> 管理員 </v-chip>
-              <v-chip v-else color="secondary" size="small" variant="flat" class="ml-2">一般用戶</v-chip>
-              <v-btn
-                v-if="form.management"
-                class="button-management ml-4"
-                variant="flat"
-                @click="
-                  () => {
-                    changeStatus();
-                    dialog = true;
-                  }
-                "
-              >
-                變更使用者權限
-              </v-btn>
-            </div>
-          </v-col>
-        </v-row>
+  <section aria-labelledby="account-heading">
+    <div class="d-flex align-baseline justify-space-between ga-3 mb-4 pb-3 border-b">
+      <h1 id="account-heading" class="text-h6 font-weight-bold">使用者帳號維護</h1>
+      <span class="text-caption text-text-tertiary">ACCOUNT</span>
+    </div>
 
+    <MotionReveal>
+      <v-card color="surface" elevation="0" rounded="lg" class="border pa-6">
+        <div class="d-flex align-center flex-wrap ga-4 mb-6">
+          <v-avatar color="primary" variant="tonal" size="48" icon="mdi-account-outline" />
+          <div class="account-name">
+            <div class="text-caption text-text-tertiary">使用者名稱</div>
+            <h2 class="text-h6 font-weight-bold">{{ form.username }}</h2>
+          </div>
+          <v-chip :color="form.management ? 'primary' : 'secondary'" size="small" variant="tonal">
+            {{ form.management ? "管理員" : "一般用戶" }}
+          </v-chip>
+          <v-spacer />
+          <v-btn
+            v-if="form.management"
+            color="primary"
+            variant="tonal"
+            prepend-icon="mdi-account-cog"
+            @click="
+              changeStatus();
+              dialog = true;
+            "
+          >
+            變更使用者權限
+          </v-btn>
+        </div>
+
+        <v-divider class="mb-6" />
         <v-form ref="formRef" @submit.prevent="handleSubmit">
+          <h2 class="text-subtitle-1 font-weight-bold mb-1">個人圖片</h2>
+          <p class="text-body-2 text-text-tertiary mb-4">輸入圖片網址並預覽顯示效果。</p>
           <v-text-field
             v-model="form.avatar"
-            label="個人圖片URL"
-            prepend-inner-icon="mdi-image"
+            label="個人圖片 URL"
+            prepend-inner-icon="mdi-image-outline"
             variant="outlined"
             required
-            class="mb-4"
             density="comfortable"
             :rules="avatarRules"
           />
-
-          <div class="text-center mb-4">
-            <div class="preview-label mb-2">
-              <v-icon class="mr-2">mdi-eye</v-icon>
-              圖片預覽
-            </div>
-            <div class="headShot">
-              <img :src="form.avatar" :alt="form.username" />
-            </div>
+          <div class="d-flex flex-column align-center ga-3 my-4">
+            <span class="text-caption text-text-tertiary">圖片預覽</span>
+            <v-avatar size="160" class="avatar-preview">
+              <v-img :src="form.avatar || '/headshot.png'" :alt="form.username || '個人圖片預覽'" cover />
+            </v-avatar>
           </div>
-
-          <v-btn color="primary" variant="elevated" size="large" :loading="loading" type="submit" block>
+          <v-textarea
+            v-model="form.introduction"
+            label="自我介紹"
+            prepend-inner-icon="mdi-text-account"
+            variant="outlined"
+            density="comfortable"
+            rows="3"
+            auto-grow
+            class="mb-4"
+          />
+          <v-btn color="primary" :loading="loading" type="submit" prepend-icon="mdi-content-save-outline" block>
             確定修改
-            <v-icon end>mdi-send</v-icon>
           </v-btn>
         </v-form>
-      </v-card-text>
       </v-card>
     </MotionReveal>
-  </v-container>
+  </section>
 
-  <!-- Dialog -->
-  <v-dialog v-model="dialog" max-width="90vw" scrollable @click:outside="dialog = false">
-    <v-card class="modal-content" color="background">
-      <v-card-title class="d-flex align-center justify-space-between">
-        <span class="text-h5 modal-title">使用者管理</span>
-        <v-btn color="primary" variant="flat" @click="dialog = false">關閉</v-btn>
+  <v-dialog v-model="dialog" max-width="680" scrollable>
+    <v-card color="surface" rounded="lg">
+      <v-card-title class="d-flex align-center justify-space-between ga-3">
+        <span class="text-h6">使用者管理</span>
+        <v-btn icon="mdi-close" variant="text" aria-label="關閉" @click="dialog = false" />
       </v-card-title>
-
       <v-card-text>
-        <v-row class="mb-2 text-h6">
-          <v-col cols="6">使用者名稱</v-col>
-          <v-col cols="6" class="text-right">權限</v-col>
-        </v-row>
-
-        <v-row v-for="userItem in allUserData" :key="userItem.id" class="user-content mb-2">
-          <v-col cols="6" class="d-flex align-center">
-            <span class="text-h6 font-weight-bold">{{ userItem.username }}</span>
-          </v-col>
-          <v-col cols="6" class="d-flex align-center justify-end">
-            <v-btn
-              class="button-simple"
-              variant="flat"
-              @click="changeManagementStatus(userItem.id)"
-              :disabled="userItem.username === 'root'"
-            >
-              {{ userItem.management ? "管理員" : "使用者" }}
-            </v-btn>
-          </v-col>
-        </v-row>
+        <div v-if="usersLoading" class="text-center pa-4" role="status">
+          <v-progress-circular indeterminate color="primary" size="24" /> 載入使用者資料中…
+        </div>
+        <p v-else-if="usersLoadError" class="text-body-2 text-error">無法取得使用者資料，請稍後再試。</p>
+        <p v-else-if="!allUserData.length" class="text-body-2 text-text-tertiary">目前沒有其他使用者資料。</p>
+        <div
+          v-for="userItem in usersLoading || usersLoadError ? [] : allUserData"
+          :key="userItem.id"
+          class="d-flex align-center justify-space-between flex-wrap ga-3 pa-3 mb-2 border rounded-lg"
+        >
+          <span class="font-weight-bold account-name">{{ userItem.username }}</span>
+          <v-btn
+            :color="userItem.management ? 'primary' : 'secondary'"
+            variant="tonal"
+            size="small"
+            :disabled="userItem.username === 'root'"
+            @click="changeManagementStatus(userItem.id)"
+          >
+            {{ userItem.management ? "管理員" : "使用者" }}
+          </v-btn>
+        </div>
       </v-card-text>
     </v-card>
   </v-dialog>
 </template>
 
 <style lang="scss" scoped>
-
-.user-info {
-  display: flex;
-  align-items: center;
-  font-size: 1.125rem;
-
-  .label {
-    font-weight: 600;
-    margin-right: 8px;
-  }
-
-  .value {
-    color: rgb(var(--v-theme-tagColor));
-    font-weight: 500;
-  }
+.account-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-.preview-label {
-  font-weight: 600;
-  color: rgb(var(--v-theme-tagColor));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.headShot {
-  margin: 0 auto;
-  max-height: 200px;
-  max-width: 200px;
-  height: 200px;
-  width: 200px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px dashed rgb(var(--v-theme-primary));
-  border-radius: 100%;
-  background-color: rgb(var(--v-theme-surface));
-
-  > img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-.modal-content {
-  max-height: 75vh;
-}
-
-.modal-title {
-  font-weight: bold;
-}
-
-.user-content {
-  border: 2px solid rgb(var(--v-theme-border));
-  border-radius: 20px;
-  padding: 8px 0;
-  background-color: rgb(var(--v-theme-background));
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-}
-
-@media (max-width: 768px) {
-  .user-info {
-    font-size: 1rem;
-    flex-wrap: wrap;
-
-    .button-management {
-      margin-top: 8px;
-      width: 100%;
-    }
-  }
-
-  .headShot {
-    max-height: 150px;
-    max-width: 150px;
-    height: 150px;
-    width: 150px;
-  }
+.avatar-preview {
+  max-width: 100%;
+  border: 2px solid rgb(var(--v-theme-primary));
 }
 </style>

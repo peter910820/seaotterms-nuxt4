@@ -7,3 +7,7 @@
   border-top-color: rgb(var(--v-theme-progress-color)) !important;
   border-left-color: rgb(var(--v-theme-progress-color)) !important;
 }
+
+#nprogress .peg {
+  box-shadow: 0 0 10px rgb(var(--v-theme-progress-color)), 0 0 5px rgb(var(--v-theme-progress-color));
+}

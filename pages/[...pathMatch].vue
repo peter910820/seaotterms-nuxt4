@@ -1,101 +1,37 @@
 <template>
-  <v-container fluid class="main-block">
-    <MotionReveal hoverable>
-      <v-card class="error-card">
-        <v-card-text class="center-content">
-          <div class="error-code">404</div>
-          <div class="error-hint">Page Not Found</div>
-          <div class="error-message">找不到該頁面！請確定網址輸入正確</div>
-          <div class="go-home-button">
-            <v-btn color="primary" variant="elevated" size="large" to="/" class="button-submit">
-              回到首頁
-              <v-icon end>mdi-home</v-icon>
-            </v-btn>
+  <section aria-labelledby="not-found-heading">
+    <div class="d-flex align-baseline justify-space-between ga-3 mb-4 pb-3 border-b">
+      <h1 id="not-found-heading" class="text-h6 font-weight-bold">找不到頁面</h1>
+      <span class="text-caption text-text-tertiary">PAGE NOT FOUND</span>
+    </div>
+
+    <MotionReveal>
+      <v-card color="surface" elevation="0" rounded="lg" class="not-found-card border pa-6 pa-sm-8">
+        <div class="d-flex align-center flex-wrap ga-5">
+          <v-avatar color="primary" variant="tonal" rounded="lg" size="64">
+            <v-icon icon="mdi-map-marker-question-outline" size="32" />
+          </v-avatar>
+          <div class="not-found-content">
+            <div class="not-found-code text-primary font-weight-bold">404</div>
+            <h2 class="text-h6 font-weight-bold mb-2">這個頁面不在這裡</h2>
+            <p class="text-body-2 text-text-tertiary">請確認網址是否正確，或回到首頁繼續瀏覽。</p>
           </div>
-        </v-card-text>
+        </div>
+        <v-divider class="my-6" />
+        <v-btn to="/" color="primary" variant="tonal" prepend-icon="mdi-home-outline">回到首頁</v-btn>
       </v-card>
     </MotionReveal>
-  </v-container>
+  </section>
 </template>
 
 <style lang="scss" scoped>
-.main-block {
-  min-height: 100vh;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  :deep(.motion-reveal) {
-    width: 100%;
-    max-width: 960px;
-  }
+.not-found-content {
+  flex: 1 1 200px;
+  min-width: 0;
 }
 
-.error-card {
-  border: 2px solid rgb(var(--v-theme-border));
-  border-radius: 20px;
-  background-color: rgb(var(--v-theme-background));
-  max-height: 600px;
-  min-height: 400px;
-  width: 100%;
-}
-
-.center-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  justify-content: center;
-  font-size: 30px;
-  min-height: 400px;
-  padding: 2rem;
-}
-
-.error-code {
-  font-size: 100px;
-  color: rgb(var(--v-theme-error));
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-.error-hint {
-  font-size: 50px;
-  margin-bottom: 20px;
-  color: rgb(var(--v-theme-error));
-  font-weight: bold;
-}
-
-.error-message {
-  font-size: 24px;
-  margin-bottom: 20px;
-  color: rgb(var(--v-theme-on-surface));
-}
-
-.go-home-button {
-  margin-top: 30px;
-}
-
-.button-submit {
-  font-family: "Cubic_11_1.100_R", sans-serif;
-}
-
-@media (max-width: 768px) {
-  .error-code {
-    font-size: 80px;
-  }
-
-  .error-hint {
-    font-size: 40px;
-  }
-
-  .error-message {
-    font-size: 20px;
-  }
-
-  .center-content {
-    font-size: 24px;
-  }
+.not-found-code {
+  font-size: clamp(3rem, 6vw, 5rem);
+  line-height: 1;
 }
 </style>

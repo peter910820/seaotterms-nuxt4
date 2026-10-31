@@ -4,6 +4,7 @@ import {
   THEME_COOKIE_NAME,
   isAppTheme,
   themeCookieOptions,
+  themeLabels,
   type AppTheme,
 } from "@/themes/themeConfig";
 
@@ -19,6 +20,8 @@ export const useAppTheme = () => {
   });
 
   const isDark = computed(() => theme.global.current.value.dark);
+  const nextTheme = computed<AppTheme>(() => (isDark.value ? "daylight-theme" : "midnight-theme"));
+  const nextThemeLabel = computed(() => themeLabels[nextTheme.value]);
 
   const setTheme = (name: AppTheme) => {
     if (!isAppTheme(name)) return;
@@ -27,14 +30,14 @@ export const useAppTheme = () => {
   };
 
   const toggleTheme = () => {
-    const nextTheme: AppTheme = isDark.value ? "v1-theme" : "darkness-theme";
-    setTheme(nextTheme);
+    setTheme(nextTheme.value);
   };
 
   return {
     theme,
     currentTheme,
     isDark,
+    nextThemeLabel,
     toggleTheme,
     setTheme,
   };

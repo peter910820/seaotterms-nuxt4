@@ -92,7 +92,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <v-container class="main-block">
+  <v-container fluid class="pa-0">
     <h1 class="page-title mb-6">建立系統代辦</h1>
     <MotionReveal>
       <v-card class="form-card" color="background">
@@ -149,7 +149,7 @@ const handleSubmit = async () => {
                 prepend-inner-icon="mdi-priority-high"
                 variant="outlined"
                 density="comfortable"
-                :rules="deadlineDateRules"
+                hide-details="auto"
               />
             </v-col>
             <v-col cols="12" md="7" class="mb-4">
@@ -160,10 +160,12 @@ const handleSubmit = async () => {
                 prepend-inner-icon="mdi-calendar"
                 variant="outlined"
                 density="comfortable"
+                :rules="deadlineDateRules"
+                hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="2" class="mb-4 d-flex align-center">
-              <v-btn color="primary" variant="elevated" size="large" :loading="loading" type="submit" block>
+            <v-col cols="12" md="2" class="mb-4 d-flex align-start">
+              <v-btn color="primary" variant="elevated" size="large" height="48" :loading="loading" type="submit" block>
                 建立
                 <v-icon end>mdi-send</v-icon>
               </v-btn>

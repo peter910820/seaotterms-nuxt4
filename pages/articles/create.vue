@@ -31,6 +31,7 @@ const form = ref<ArticleCreateRequest>({
 });
 
 const loading = ref(false);
+const previewOpen = ref(false);
 const formRef = ref();
 const titleRules = [(v: string) => !!v?.trim() || "標題不得為空"];
 
@@ -104,12 +105,25 @@ const renderedMarkdown = computed(() => renderMarkdown(form.value.content));
 </script>
 
 <template>
-  <v-container class="main-block">
-    <h1 class="page-title mb-6">建立文章</h1>
+  <section aria-labelledby="create-article-heading">
+    <div class="d-flex align-baseline justify-space-between ga-3 mb-4 pb-3 border-b">
+      <h1 id="create-article-heading" class="text-h6 font-weight-bold">建立文章</h1>
+      <span class="text-caption text-text-tertiary">NEW ARTICLE</span>
+    </div>
     <MotionReveal>
-      <v-card class="form-card" color="background">
-      <v-card-text class="pa-8">
+      <v-card color="surface" elevation="0" rounded="lg" class="border pa-4 pa-sm-6">
+        <div class="d-flex align-center ga-3 mb-6">
+          <v-avatar color="primary" variant="tonal" rounded="lg" size="48">
+            <v-icon icon="mdi-text-box-edit-outline" />
+          </v-avatar>
+          <div>
+            <h2 class="text-subtitle-1 font-weight-bold">撰寫新文章</h2>
+            <p class="text-body-2 text-text-tertiary">填寫文章資訊，使用 Markdown 編輯內容。</p>
+          </div>
+        </div>
+        <v-divider class="mb-6" />
         <v-form ref="formRef" @submit.prevent="handleSubmit">
+          <h3 class="text-subtitle-2 font-weight-bold mb-3">文章資訊</h3>
           <v-text-field
             v-model="form.title"
             label="標題"
@@ -119,10 +133,11 @@ const renderedMarkdown = computed(() => renderMarkdown(form.value.content));
             class="mb-4"
             density="comfortable"
             :rules="titleRules"
+            hide-details="auto"
           />
 
           <v-row>
-            <v-col cols="12" md="6" class="mb-4">
+            <v-col cols="12" sm="5">
               <v-text-field
                 v-model="form.username"
                 label="使用者名稱"
@@ -130,76 +145,83 @@ const renderedMarkdown = computed(() => renderMarkdown(form.value.content));
                 variant="outlined"
                 disabled
                 density="comfortable"
+                hide-details="auto"
               />
             </v-col>
-            <v-col cols="12" md="6" class="mb-4">
+            <v-col cols="12" sm="7">
               <v-select
                 v-model="form.tags"
                 :items="choiceTag"
                 item-title="name"
                 item-value="name"
-                label="選擇Tag"
-                placeholder="選擇Tag"
+                label="文章標籤"
+                placeholder="選擇標籤"
                 prepend-inner-icon="mdi-tag-multiple"
                 variant="outlined"
                 density="comfortable"
                 multiple
                 chips
                 closable-chips
+                hide-details="auto"
               />
             </v-col>
           </v-row>
 
-          <v-row>
-            <v-col cols="12" md="6" class="mb-4">
-              <v-textarea
-                v-model="form.content"
-                label="Content"
-                prepend-inner-icon="mdi-pencil"
-                variant="outlined"
-                density="comfortable"
-                rows="10"
-                class="text-insert"
-                auto-grow
-              />
-            </v-col>
-            <v-col cols="12" md="6" class="mb-4">
-              <div class="markdown-preview-label mb-2">
-                <v-icon class="mr-2">mdi-eye</v-icon>
-                Markdown 預覽
-              </div>
-              <div class="markdown-preview" v-html="renderedMarkdown"></div>
-            </v-col>
-          </v-row>
-
-          <div class="hint mb-4">
-            <v-icon size="small" class="mr-2">mdi-information</v-icon>
-            本功能使用markdown支援(右邊會有markdown即時預覽)
+          <div class="d-flex align-center justify-space-between flex-wrap ga-2 mt-6 mb-3">
+            <h3 class="text-subtitle-2 font-weight-bold">文章內容</h3>
+            <v-btn
+              type="button"
+              variant="tonal"
+              color="primary"
+              size="small"
+              prepend-icon="mdi-eye-outline"
+              @click="previewOpen = true"
+            >
+              預覽文章
+            </v-btn>
           </div>
+          <v-textarea
+            v-model="form.content"
+            label="Markdown 內容"
+            placeholder="開始撰寫文章…"
+            prepend-inner-icon="mdi-pencil"
+            variant="outlined"
+            density="comfortable"
+            rows="10"
+            class="text-insert"
+            auto-grow
+            hide-details="auto"
+          />
 
-          <v-btn color="primary" variant="elevated" size="large" :loading="loading" type="submit" block>
-            建立文章
-            <v-icon end>mdi-send</v-icon>
-          </v-btn>
+          <v-divider class="my-6" />
+          <div class="d-flex justify-end flex-wrap ga-3">
+            <v-btn to="/" variant="text">返回首頁</v-btn>
+            <v-btn color="primary" :loading="loading" type="submit" prepend-icon="mdi-send">建立文章</v-btn>
+          </div>
         </v-form>
-      </v-card-text>
       </v-card>
     </MotionReveal>
-  </v-container>
+    <v-dialog v-model="previewOpen" max-width="900" scrollable aria-labelledby="preview-title">
+      <v-card color="surface" rounded="lg">
+        <v-card-title class="d-flex align-center justify-space-between ga-3">
+          <span id="preview-title" class="text-h6">文章預覽</span>
+          <v-btn icon="mdi-close" variant="text" aria-label="關閉預覽" @click="previewOpen = false" />
+        </v-card-title>
+        <v-divider />
+        <v-card-text>
+          <div v-if="form.content.trim()" class="markdown-preview" v-html="renderedMarkdown"></div>
+          <div v-else class="markdown-preview text-body-2 text-text-tertiary"></div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="previewOpen = false">關閉</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </section>
 </template>
 
 <style lang="scss" scoped>
-.form-card {
-  border: 2px solid rgb(var(--v-theme-border));
-}
-
-.hint {
-  color: rgb(var(--v-theme-error));
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-}
-
 .text-insert {
   :deep(.v-field__input) {
     max-height: 400px;
@@ -207,23 +229,20 @@ const renderedMarkdown = computed(() => renderMarkdown(form.value.content));
   }
 }
 
-.markdown-preview-label {
-  font-weight: 600;
-  color: rgb(var(--v-theme-tagColor));
-  display: flex;
-  align-items: center;
-}
-
 .markdown-preview {
-  border: 2px solid rgb(var(--v-theme-border));
+  border: 1px solid rgb(var(--v-theme-border));
   border-radius: 8px;
   padding: 16px;
   min-height: 200px;
-  max-height: 400px;
-  overflow-y: auto;
   background-color: rgb(var(--v-theme-background));
   font-size: 0.875rem;
   line-height: 1.6;
+  overflow-wrap: anywhere;
+
+  :deep(img) {
+    max-width: 100%;
+    height: auto;
+  }
 
   :deep(h1),
   :deep(h2),
@@ -271,12 +290,6 @@ const renderedMarkdown = computed(() => renderMarkdown(form.value.content));
     padding-left: 1em;
     margin-left: 0;
     color: rgb(var(--v-theme-text-tertiary));
-  }
-}
-
-@media (max-width: 768px) {
-  .markdown-preview {
-    max-height: 300px;
   }
 }
 </style>
