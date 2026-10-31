@@ -16,6 +16,7 @@ const form = ref({
 
 const err = ref("");
 const loading = ref(false);
+const registrationOpen = false;
 
 const usernameRules = [(v: string) => !!v || "此欄不能為空"];
 const emailRules = [(v: string) => !!v || "此欄不能為空", (v: string) => /.+@.+\..+/.test(v) || "格式錯誤"];
@@ -26,7 +27,7 @@ const checkPasswordRules = [
 ];
 
 const handleRegisterSubmit = async () => {
-  if (loading.value) {
+  if (!registrationOpen || loading.value) {
     return;
   }
 
@@ -68,7 +69,7 @@ const handleRegisterSubmit = async () => {
           </v-avatar>
           <div>
             <h2 class="text-subtitle-1 font-weight-bold">建立帳號</h2>
-            <p class="text-body-2 text-text-tertiary">填寫以下資料以完成註冊。</p>
+            <p class="text-body-2 text-text-tertiary">目前不開放註冊。</p>
           </div>
         </div>
         <v-divider class="mb-6" />
@@ -125,7 +126,7 @@ const handleRegisterSubmit = async () => {
             {{ err }}
           </div>
 
-          <v-btn color="primary" variant="elevated" size="large" :loading="loading" type="submit" block>
+          <v-btn color="primary" variant="elevated" size="large" :loading="loading" :disabled="!registrationOpen" type="submit" block>
             註冊
             <v-icon end>mdi-send</v-icon>
           </v-btn>
