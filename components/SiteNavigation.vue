@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useAppTheme } from "@/composables/useAppTheme";
+import { useLogout } from "@/composables/useLogout";
 import { useLoginModal } from "@/stores/useLoginModal";
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const { isDark, nextThemeLabel, toggleTheme } = useAppTheme();
 const { openLoginModal } = useLoginModal();
+const { logout, loading: loggingOut } = useLogout();
 const route = useRoute();
 
 const navigationItems: { to: string; icon: string; title: string; requiresAuthentication?: boolean }[] = [
@@ -24,17 +26,6 @@ const visibleItems = computed(() =>
 );
 const isActive = (path: string) => route.path === path || (path !== "/" && route.path.startsWith(`${path}/`));
 
-const logout = () => {
-  const session = useCookie("blog-userinfo-session", {
-    path: "/",
-    maxAge: 0,
-    sameSite: "none",
-    domain: useRuntimeConfig().public.rootDomain,
-    secure: true,
-  });
-  session.value = null;
-  userStore.reset();
-};
 </script>
 
 <template>
@@ -74,7 +65,7 @@ const logout = () => {
       </v-btn>
       <ThemeVersionSwitch />
       <v-btn v-if="!isAuthenticated" color="primary" rounded="pill" class="auth-button flex-grow-1" @click="openLoginModal">登入</v-btn>
-      <v-btn v-else color="primary" rounded="pill" class="auth-button flex-grow-1" @click="logout">登出</v-btn>
+      <v-btn v-else color="primary" rounded="pill" class="auth-button flex-grow-1" :loading="loggingOut" @click="logout">登出</v-btn>
     </div>
   </v-card>
 </template>

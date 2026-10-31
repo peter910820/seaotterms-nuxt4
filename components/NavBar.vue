@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useLoginModal } from "@/stores/useLoginModal";
 import { useAppTheme } from "@/composables/useAppTheme";
+import { useLogout } from "@/composables/useLogout";
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const { openLoginModal } = useLoginModal();
+const { logout, loading: loggingOut } = useLogout();
 
 const route = useRoute();
 const { isDark, nextThemeLabel, toggleTheme } = useAppTheme();
@@ -44,18 +46,11 @@ const drawerNavigationItems = computed(() => [
   ...getVisibleNavigationItems(otherNavigationItems),
 ]);
 
-const handleLogout = () => {
-  const session = useCookie("blog-userinfo-session", {
-    path: "/",
-    maxAge: 0,
-    sameSite: "none",
-    domain: useRuntimeConfig().public.rootDomain,
-    secure: true,
-  });
-  session.value = null;
-  userStore.reset();
-  accountMenu.value = false;
-  drawer.value = false;
+const handleLogout = async () => {
+  if (await logout()) {
+    accountMenu.value = false;
+    drawer.value = false;
+  }
 };
 
 watch(
@@ -121,7 +116,7 @@ watch(
           </template>
 
           <div class="menu-panel">
-            <button type="button" class="menu-item menu-item-danger" @click="handleLogout">
+            <button type="button" class="menu-item menu-item-danger" :disabled="loggingOut" @click="handleLogout">
               <span class="menu-item-icon">
                 <v-icon size="18">mdi-logout</v-icon>
               </span>
@@ -160,7 +155,7 @@ watch(
           </span>
           <span>登入</span>
         </button>
-        <button v-else type="button" class="drawer-link drawer-link-danger" @click="handleLogout">
+        <button v-else type="button" class="drawer-link drawer-link-danger" :disabled="loggingOut" @click="handleLogout">
           <span class="menu-item-icon">
             <v-icon size="18">mdi-logout</v-icon>
           </span>

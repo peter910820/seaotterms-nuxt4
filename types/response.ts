@@ -6,7 +6,7 @@ export interface CommonResponse<T = null> {
   statusCode: number;
   errMsg: string;
   infoMsg: string;
-  userInfo: UserInfo;
+  userInfo: UserInfo | null;
   data: T;
 }
 

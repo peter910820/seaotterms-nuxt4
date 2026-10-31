@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { userInfoHandler } from "@/utils/userInfoHandler";
-import { errorHandler } from "@/utils/errorHandler";
-import { messageStorage } from "@/utils/messageHandler";
-
+import { useLogin } from "@/composables/useLogin";
 import type { LoginRequest } from "@/types/request";
-import type { CommonResponse } from "@/types/response";
 
 interface Props {
   modelValue: boolean;
@@ -18,6 +14,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const router = useRouter();
+const { login, loading } = useLogin();
 
 const dialog = computed({
   get: () => props.modelValue,
@@ -29,29 +26,14 @@ const request = ref<LoginRequest>({
   password: "",
 });
 
-const loading = ref(false);
-
 const handleSubmit = async () => {
   if (!request.value.username || !request.value.password) {
     return;
   }
 
-  loading.value = true;
-  try {
-    const response = await $fetch<CommonResponse>("auth/login", {
-      baseURL: useRuntimeConfig().public.apiUrl,
-      method: "POST",
-      body: request.value,
-      credentials: "include",
-    });
-    userInfoHandler(response.userInfo);
-    messageStorage(response.statusCode, response.infoMsg);
+  if (await login(request.value)) {
     dialog.value = false;
     router.push("/message");
-  } catch (error) {
-    errorHandler(error);
-  } finally {
-    loading.value = false;
   }
 };
 </script>
